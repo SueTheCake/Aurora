@@ -11,13 +11,10 @@
 	var/fire_volume = 50 //How loud it is played.
 	var/auto_rearm = 0 //Does the weapon reload itself after each shot?
 
-/obj/item/mecha_parts/mecha_equipment/weapon/can_attach(var/obj/mecha/combat/M)
-
-	if(istype(M))
-		return ..()
-	else
+/obj/item/mecha_parts/mecha_equipment/weapon/can_attach(var/obj/mecha/combat/M as obj)
+	if(!istype(M))
 		return 0
-
+	return ..()
 
 /obj/item/mecha_parts/mecha_equipment/weapon/action_checks(atom/target)
 	if(projectiles <= 0)
@@ -318,7 +315,7 @@
 	var/obj/item/device/assembly/mousetrap/M = AM
 	M.secured = 1
 	..()
-
+/*
 /obj/item/mecha_parts/mecha_equipment/weapon/energy/taserexo
 	name = "Heavy Duty Exoskeleton Tasergun"
 	icon_state = "mecha_taser"
@@ -346,7 +343,7 @@
 			return 0
 		else
 			return ..()
-
+*/
 /obj/item/mecha_parts/mecha_equipment/handcuffs
 	name = "handcuffs"
 	desc = "Use this to keep prisoners in line."

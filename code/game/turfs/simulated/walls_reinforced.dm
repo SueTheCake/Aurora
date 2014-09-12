@@ -25,7 +25,7 @@
 		return
 
 	user << "\blue You push the wall but nothing happens!"
-	playsound(src.loc, 'sound/weapons/Genhit.ogg', 25, 1)
+	playsound(src, 'sound/weapons/Genhit.ogg', 25, 1)
 	src.add_fingerprint(user)
 	return
 
@@ -39,12 +39,34 @@
 	//get the user's location
 	if( !istype(user.loc, /turf) )	return	//can't do this stuff whilst inside objects and such
 
+	if (istype(W, /obj/item/weapon/grab) && get_dist(src,user)<2)
+		var/obj/item/weapon/grab/G = W
+		if (istype(G.affecting, /mob/living))
+			var/mob/living/M = G.affecting
+			if (G.state < 2)
+				if(user.a_intent == "hurt")
+					if (prob(15))	M.Weaken(5)
+					M.apply_damage(16,def_zone = "head")
+					visible_message("\red [G.assailant] slams [G.affecting]'s face against \the [src]!")
+					msg_admin_attack("[user.name]([user.ckey]) slams [M.name]'s([M.ckey]) face against \the [src]!")
+//					switch(rand(1,3))
+//						if(1)
+//							playsound(src.loc, 'sound/weapons/genhit1.ogg', 50, 1)
+//						if(2)
+//							playsound(src.loc, 'sound/weapons/genhit2.ogg', 50, 1)
+//						if(3)
+//							playsound(src.loc, 'sound/weapons/genhit3.ogg', 50, 1)
+					return
+				else
+					user << "\red You need a better grip to do that!"
+					return
+
 	if(rotting)
 		if(istype(W, /obj/item/weapon/weldingtool) )
 			var/obj/item/weapon/weldingtool/WT = W
 			if( WT.remove_fuel(0,user) )
 				user << "<span class='notice'>You burn away the fungi with \the [WT].</span>"
-				playsound(src.loc, 'sound/items/Welder.ogg', 10, 1)
+				playsound(src, 'sound/items/Welder.ogg', 10, 1)
 				for(var/obj/effect/E in src) if(E.name == "Wallrot")
 					del E
 				rotting = 0
@@ -71,8 +93,8 @@
 
 			EB.spark_system.start()
 			user << "<span class='notice'>You slash \the [src] with \the [EB]; the thermite ignites!</span>"
-			playsound(src.loc, "sparks", 50, 1)
-			playsound(src.loc, 'sound/weapons/blade1.ogg', 50, 1)
+			playsound(src, "sparks", 50, 1)
+			playsound(src, 'sound/weapons/blade1.ogg', 50, 1)
 
 			thermitemelt(user)
 			return
@@ -87,7 +109,7 @@
 	switch(d_state)
 		if(0)
 			if (istype(W, /obj/item/weapon/wirecutters))
-				playsound(src.loc, 'sound/items/Wirecutter.ogg', 100, 1)
+				playsound(src, 'sound/items/Wirecutter.ogg', 100, 1)
 				src.d_state = 1
 				src.icon_state = "r_wall-1"
 				new /obj/item/stack/rods( src )
@@ -97,7 +119,7 @@
 		if(1)
 			if (istype(W, /obj/item/weapon/screwdriver))
 				user << "<span class='notice'>You begin removing the support lines.</span>"
-				playsound(src.loc, 'sound/items/Screwdriver.ogg', 100, 1)
+				playsound(src, 'sound/items/Screwdriver.ogg', 100, 1)
 
 				sleep(40)
 				if( !istype(src, /turf/simulated/wall/r_wall) || !user || !W || !T )	return
@@ -127,7 +149,7 @@
 				if( WT.remove_fuel(0,user) )
 
 					user << "<span class='notice'>You begin slicing through the metal cover.</span>"
-					playsound(src.loc, 'sound/items/Welder.ogg', 100, 1)
+					playsound(src, 'sound/items/Welder.ogg', 100, 1)
 
 					sleep(60)
 					if( !istype(src, /turf/simulated/wall/r_wall) || !user || !WT || !WT.isOn() || !T )	return
@@ -143,7 +165,7 @@
 			if( istype(W, /obj/item/weapon/pickaxe/plasmacutter) )
 
 				user << "<span class='notice'>You begin slicing through the metal cover.</span>"
-				playsound(src.loc, 'sound/items/Welder.ogg', 100, 1)
+				playsound(src, 'sound/items/Welder.ogg', 100, 1)
 
 				sleep(40)
 				if( !istype(src, /turf/simulated/wall/r_wall) || !user || !W || !T )	return
@@ -158,7 +180,7 @@
 			if (istype(W, /obj/item/weapon/crowbar))
 
 				user << "<span class='notice'>You struggle to pry off the cover.</span>"
-				playsound(src.loc, 'sound/items/Crowbar.ogg', 100, 1)
+				playsound(src, 'sound/items/Crowbar.ogg', 100, 1)
 
 				sleep(100)
 				if( !istype(src, /turf/simulated/wall/r_wall) || !user || !W || !T )	return
@@ -173,7 +195,7 @@
 			if (istype(W, /obj/item/weapon/wrench))
 
 				user << "<span class='notice'>You start loosening the anchoring bolts which secure the support rods to their frame.</span>"
-				playsound(src.loc, 'sound/items/Ratchet.ogg', 100, 1)
+				playsound(src, 'sound/items/Ratchet.ogg', 100, 1)
 
 				sleep(40)
 				if( !istype(src, /turf/simulated/wall/r_wall) || !user || !W || !T )	return
@@ -190,7 +212,7 @@
 				if( WT.remove_fuel(0,user) )
 
 					user << "<span class='notice'>You begin slicing through the support rods.</span>"
-					playsound(src.loc, 'sound/items/Welder.ogg', 100, 1)
+					playsound(src, 'sound/items/Welder.ogg', 100, 1)
 
 					sleep(100)
 					if( !istype(src, /turf/simulated/wall/r_wall) || !user || !WT || !WT.isOn() || !T )	return
@@ -207,7 +229,7 @@
 			if( istype(W, /obj/item/weapon/pickaxe/plasmacutter) )
 
 				user << "<span class='notice'>You begin slicing through the support rods.</span>"
-				playsound(src.loc, 'sound/items/Welder.ogg', 100, 1)
+				playsound(src, 'sound/items/Welder.ogg', 100, 1)
 
 				sleep(70)
 				if( !istype(src, /turf/simulated/wall/r_wall) || !user || !W || !T )	return
@@ -223,7 +245,7 @@
 			if( istype(W, /obj/item/weapon/crowbar) )
 
 				user << "<span class='notice'>You struggle to pry off the outer sheath.</span>"
-				playsound(src.loc, 'sound/items/Crowbar.ogg', 100, 1)
+				playsound(src, 'sound/items/Crowbar.ogg', 100, 1)
 
 				sleep(100)
 				if( !istype(src, /turf/simulated/wall/r_wall) || !user || !W || !T )	return

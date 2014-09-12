@@ -40,8 +40,8 @@
 					shottas--
 					gun.icon_state = "projectile"
 
-//				gun.pixel_x = i*4 Trying some fixes to make the guncabinets less retarded -- Skull132
-				overlays += gun
+				gun.pixel_x = i*4
+//				overlays += gun //Moves the overlay layer and creates a weird sprite bug
 
 		overlays += icon(src.icon,"door")
 

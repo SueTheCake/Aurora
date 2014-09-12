@@ -7,7 +7,7 @@
 
 	var/list/Lines = list()
 
-	if(holder)
+	if(holder && (R_ADMIN & holder.rights || R_MOD & holder.rights))
 		for(var/client/C in clients)
 			var/entry = "\t[C.key]"
 			if(C.holder && C.holder.fakekey)
@@ -48,14 +48,17 @@
 
 	var/msg = ""
 	var/modmsg = ""
-	var/custommsg = ""
+	var/devmsg = ""
+	var/num_devs_online = 0
 	var/num_mods_online = 0
 	var/num_admins_online = 0
-	var/num_custom_online = 0
-
 	if(holder)
 		for(var/client/C in admins)
-			if(R_ADMIN & C.holder.rights)
+			if(R_ADMIN & C.holder.rights || (!R_MOD & C.holder.rights))	//Used to determine who shows up in admin rows
+
+				if(C.holder.fakekey && (!R_ADMIN & holder.rights && !R_MOD & holder.rights))		//Mentors can't see stealthmins
+					continue
+
 				msg += "\t[C] is a [C.holder.rank]"
 
 				if(C.holder.fakekey)
@@ -87,34 +90,33 @@
 					modmsg += " (AFK)"
 				modmsg += "\n"
 				num_mods_online++
-
-			else
-				custommsg += "\t[C] is a [C.holder.rank]"
+			else if(R_DEV & C.holder.rights)
+				devmsg += "\t[C] is a [C.holder.rank]"
 
 				if(isobserver(C.mob))
-					custommsg += " - Observing"
+					devmsg += " - Observing"
 				else if(istype(C.mob,/mob/new_player))
-					custommsg += " - Lobby"
+					devmsg += " - Lobby"
 				else
-					custommsg += " - Playing"
+					devmsg += " - Playing"
 
 				if(C.is_afk())
-					custommsg += " (AFK)"
-				custommsg += "\n"
-				num_custom_online++
+					devmsg += " (AFK)"
+				devmsg += "\n"
+				num_devs_online++
 
 	else
 		for(var/client/C in admins)
-			if(R_ADMIN & C.holder.rights)
+			if(R_ADMIN & C.holder.rights || (!R_MOD & C.holder.rights))
 				if(!C.holder.fakekey)
 					msg += "\t[C] is a [C.holder.rank]\n"
 					num_admins_online++
-			else if(R_MOD & C.holder.rights)
+			else if (R_MOD & C.holder.rights)
 				modmsg += "\t[C] is a [C.holder.rank]\n"
 				num_mods_online++
-			else
-				custommsg += "\t[C] is a [C.holder.rank]\n"
-				num_custom_online++
+			else if(R_DEV & C.holder.rights)
+				devmsg += "\t[C] is a [C.holder.rank]\n"
+				num_devs_online++
 
-	msg = "<b>Current Admins ([num_admins_online]):</b>\n" + msg + "\n<b> Current Moderators([num_mods_online]):</b>\n" + modmsg + "\n<b> Current Custom Ranks([num_custom_online]):</b>\n" + custommsg
+	msg = "<b>Current Admins ([num_admins_online]):</b>\n" + msg + "\n<b> Current Moderators([num_mods_online]):</b>\n" + modmsg + "\n<b> Current Developers([num_devs_online]):</b>\n" + devmsg
 	src << msg

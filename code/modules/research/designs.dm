@@ -223,6 +223,15 @@ datum/design/robocontrol
 	materials = list("$glass" = 2000, "sacid" = 20)
 	build_path = "/obj/item/weapon/circuitboard/robotics"
 
+datum/design/dronecontrol
+	name = "Circuit Design (Drone Control Console)"
+	desc = "Allows for the construction of circuit boards used to build a Drone Control console."
+	id = "dronecontrol"
+	req_tech = list("programming" = 4)
+	build_type = IMPRINTER
+	materials = list("$glass" = 2000, "sacid" = 20)
+	build_path = "/obj/item/weapon/circuitboard/drone_control"
+
 datum/design/clonecontrol
 	name = "Circuit Design (Cloning Machine Console)"
 	desc = "Allows for the construction of circuit boards used to build a new Cloning Machine console."
@@ -717,7 +726,7 @@ datum/design/honker_targ
 	build_type = IMPRINTER
 	materials = list("$glass" = 2000, "sacid" = 20)
 	build_path = "/obj/item/weapon/circuitboard/mecha/honker/targeting"
-
+/*
 datum/design/exoskeleton
 	name = "Circuit Design (\"Exoskeleton\" Control Module)"
 	desc = "Allows for the construction of a \"Exoskeleton\" Control Module."
@@ -726,7 +735,7 @@ datum/design/exoskeleton
 	build_type = IMPRINTER
 	materials = list("$glass" = 2000, "sacid" = 20)
 	build_path = "/obj/item/weapon/circuitboard/mecha/exoskeleton/main"
-
+*/
 ////////////////////////////////////////
 /////////// Mecha Equpment /////////////
 ////////////////////////////////////////
@@ -790,7 +799,7 @@ datum/design/mech_teleporter
 	desc = "An exosuit module that allows exosuits to teleport to any position in view."
 	id = "mech_teleporter"
 	build_type = MECHFAB
-	req_tech = list("bluespace" = 10, "magnets" = 5)
+	req_tech = list("bluespace" = 5, "magnets" = 5)
 	build_path = "/obj/item/mecha_parts/mecha_equipment/teleporter"
 	category = "Exosuit Equipment"
 
@@ -1510,9 +1519,9 @@ datum/design/decloner
 	name = "Decloner"
 	desc = "Your opponent will bubble into a messy pile of goop."
 	id = "decloner"
-	req_tech = list("combat" = 8, "materials" = 7, "biotech" = 5, "powerstorage" = 6)
+	req_tech = list("combat" = 5, "materials" = 7, "biotech" = 4, "powerstorage" = 5)
 	build_type = PROTOLATHE
-	materials = list("$gold" = 5000,"$uranium" = 10000, "mutagen" = 40)
+	materials = list("$gold" = 5000,"$uranium" = 5000, "$plasma" = 1500) //"mutagen" = 40 Don't think protolathe can hold chems anymore.  Not sure.  It's redundant anyway.  Mutagen is easy.
 	build_path = "/obj/item/weapon/gun/energy/decloner"
 	locked = 1
 
@@ -1520,9 +1529,9 @@ datum/design/chemsprayer
 	name = "Chem Sprayer"
 	desc = "An advanced chem spraying device."
 	id = "chemsprayer"
-	req_tech = list("materials" = 3, "engineering" = 3, "biotech" = 2)
+	req_tech = list("materials" = 3, "engineering" = 5, "biotech" = 2)
 	build_type = PROTOLATHE
-	materials = list("$metal" = 5000, "$glass" = 1000)
+	materials = list("$metal" = 5000, "$glass" = 1000, "$plasma" = 3000)
 	reliability_base = 100
 	build_path = "/obj/item/weapon/reagent_containers/spray/chemsprayer"
 
@@ -1545,7 +1554,7 @@ datum/design/largecrossbow
 	build_path = "/obj/item/weapon/gun/energy/crossbow/largecrossbow"
 
 datum/design/temp_gun
-	name = "Temperature Gun"
+	name = "Freeze Ray"
 	desc = "A gun that shoots temperature bullet energythings to change temperature."//Change it if you want
 	id = "temp_gun"
 	req_tech = list("combat" = 3, "materials" = 4, "powerstorage" = 3, "magnets" = 2)
@@ -1583,6 +1592,16 @@ datum/design/smg
 	build_path = "/obj/item/weapon/gun/projectile/automatic"
 	locked = 1
 
+datum/design/rapidlaser
+	name = "Rapid-fire Laser"
+	desc = "A fast-firing laser that shoots bursts of weaker beams."
+	id = "rapidlaser"
+	req_tech = list("combat" = 4, "materials" = 3)
+	build_type = PROTOLATHE
+	materials = list("$metal" = 5000, "$uranium" = 1000)
+	build_path = "/obj/item/weapon/gun/energy/automatic/rapidlaser"
+	locked = 1
+
 datum/design/ammo_9mm
 	name = "Ammunition Box (9mm)"
 	desc = "A box of prototype 9mm ammunition."
@@ -1609,6 +1628,15 @@ datum/design/plasmapistol
 	build_type = PROTOLATHE
 	materials = list("$metal" = 5000, "$glass" = 1000, "$plasma" = 3000)
 	build_path = "/obj/item/weapon/gun/energy/toxgun"
+
+datum/design/lawgiver
+	name = "Lawgiver Mk II"
+	desc = "A highly advanced firearm for the modern police force. It has multiple voice-activated firing modes."
+	id = "lawgiver"
+	req_tech = list("combat" = 6, "plasmatech" = 4, "bluespace" = 5, "materials" = 7)
+	build_type = PROTOLATHE
+	materials = list("$metal" = 6000, "$glass" = 1000, "$uranium" = 1000, "$plasma" = 1000, "$diamond" = 3000)
+	build_path = "/obj/item/weapon/gun/energy/lawgiver"
 /////////////////////////////////////////
 /////////////////Mining//////////////////
 /////////////////////////////////////////
@@ -1640,7 +1668,7 @@ datum/design/plasmacutter
 	materials = list("$metal" = 1500, "$glass" = 500, "$gold" = 500, "$plasma" = 500)
 	reliability_base = 79
 	build_path = "/obj/item/weapon/pickaxe/plasmacutter"
-
+/* I'm sorry, but the diamond drill is pretty much redundant.  And it messes with my immersions.
 datum/design/pick_diamond
 	name = "Diamond Pickaxe"
 	desc = "A pickaxe with a diamond pick head, this is just like minecraft."
@@ -1649,7 +1677,7 @@ datum/design/pick_diamond
 	build_type = PROTOLATHE
 	materials = list("$diamond" = 3000)
 	build_path = "/obj/item/weapon/pickaxe/diamond"
-
+*/
 datum/design/drill_diamond
 	name = "Diamond Mining Drill"
 	desc = "Yours is the drill that will pierce the heavens!"

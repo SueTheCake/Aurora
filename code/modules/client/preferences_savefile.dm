@@ -84,8 +84,6 @@
 	S["be_special"]			<< be_special
 	S["default_slot"]		<< default_slot
 	S["toggles"]			<< toggles
-	S["UI_style_color"]		<< UI_style_color
-	S["UI_style_alpha"]		<< UI_style_alpha
 
 	return 1
 
@@ -119,12 +117,16 @@
 	S["facial_green"]		>> g_facial
 	S["facial_blue"]		>> b_facial
 	S["skin_tone"]			>> s_tone
+	S["skin_red"]			>> r_skin
+	S["skin_green"]			>> g_skin
+	S["skin_blue"]			>> b_skin
 	S["hair_style_name"]	>> h_style
 	S["facial_style_name"]	>> f_style
 	S["eyes_red"]			>> r_eyes
 	S["eyes_green"]			>> g_eyes
 	S["eyes_blue"]			>> b_eyes
 	S["underwear"]			>> underwear
+	S["undershirt"]			>> undershirt
 	S["backbag"]			>> backbag
 	S["b_type"]				>> b_type
 
@@ -152,11 +154,15 @@
 	S["skills"]				>> skills
 	S["skill_specialization"] >> skill_specialization
 	S["organ_data"]			>> organ_data
+	S["gear"] 				>> gear
 
 	S["nanotrasen_relation"] >> nanotrasen_relation
 	//S["skin_style"]			>> skin_style
 
 	S["uplinklocation"] >> uplinklocation
+
+	S["UI_style_color"]		<< UI_style_color
+	S["UI_style_alpha"]		<< UI_style_alpha
 
 	//Sanitize
 	metadata		= sanitize_text(metadata, initial(metadata))
@@ -175,12 +181,16 @@
 	g_facial		= sanitize_integer(g_facial, 0, 255, initial(g_facial))
 	b_facial		= sanitize_integer(b_facial, 0, 255, initial(b_facial))
 	s_tone			= sanitize_integer(s_tone, -185, 34, initial(s_tone))
+	r_skin			= sanitize_integer(r_skin, 0, 255, initial(r_skin))
+	g_skin			= sanitize_integer(g_skin, 0, 255, initial(g_skin))
+	b_skin			= sanitize_integer(b_skin, 0, 255, initial(b_skin))
 	h_style			= sanitize_inlist(h_style, hair_styles_list, initial(h_style))
 	f_style			= sanitize_inlist(f_style, facial_hair_styles_list, initial(f_style))
 	r_eyes			= sanitize_integer(r_eyes, 0, 255, initial(r_eyes))
 	g_eyes			= sanitize_integer(g_eyes, 0, 255, initial(g_eyes))
 	b_eyes			= sanitize_integer(b_eyes, 0, 255, initial(b_eyes))
 	underwear		= sanitize_integer(underwear, 1, underwear_m.len, initial(underwear))
+	undershirt		= sanitize_integer(undershirt, 1, undershirt_t.len, initial(undershirt))
 	backbag			= sanitize_integer(backbag, 1, backbaglist.len, initial(backbag))
 	b_type			= sanitize_text(b_type, initial(b_type))
 
@@ -200,6 +210,7 @@
 	if(isnull(disabilities)) disabilities = 0
 	if(!player_alt_titles) player_alt_titles = new()
 	if(!organ_data) src.organ_data = list()
+	if(!gear) src.gear = list()
 	//if(!skin_style) skin_style = "Default"
 
 	return 1
@@ -225,12 +236,16 @@
 	S["facial_green"]		<< g_facial
 	S["facial_blue"]		<< b_facial
 	S["skin_tone"]			<< s_tone
+	S["skin_red"]			<< r_skin
+	S["skin_green"]			<< g_skin
+	S["skin_blue"]			<< b_skin
 	S["hair_style_name"]	<< h_style
 	S["facial_style_name"]	<< f_style
 	S["eyes_red"]			<< r_eyes
 	S["eyes_green"]			<< g_eyes
 	S["eyes_blue"]			<< b_eyes
 	S["underwear"]			<< underwear
+	S["undershirt"]			<< undershirt
 	S["backbag"]			<< backbag
 	S["b_type"]				<< b_type
 
@@ -258,11 +273,15 @@
 	S["skills"]				<< skills
 	S["skill_specialization"] << skill_specialization
 	S["organ_data"]			<< organ_data
+	S["gear"] 				<< gear
 
 	S["nanotrasen_relation"] << nanotrasen_relation
 	//S["skin_style"]			<< skin_style
 
 	S["uplinklocation"] << uplinklocation
+
+	S["UI_style_color"]		<< UI_style_color
+	S["UI_style_alpha"]		<< UI_style_alpha
 
 	return 1
 

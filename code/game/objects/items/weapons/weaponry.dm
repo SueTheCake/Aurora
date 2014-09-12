@@ -6,7 +6,7 @@
 	flags = FPRINT | TABLEPASS
 	slot_flags = SLOT_BELT
 	throwforce = 0
-	w_class = 1.0
+	w_class = 2.0
 	throw_speed = 7
 	throw_range = 15
 	attack_verb = list("banned")
@@ -26,7 +26,7 @@
 	throw_speed = 1
 	throw_range = 4
 	throwforce = 10
-	w_class = 1
+	w_class = 2
 
 	suicide_act(mob/user)
 		viewers(user) << "\red <b>[user] is impaling \himself with the [src.name]! It looks like \he's trying to commit suicide.</b>"
@@ -56,15 +56,30 @@
 			ticker.mode.remove_cultist(M.mind)
 			for(var/mob/O in viewers(M, null))
 				O.show_message(text("\red [] waves [] over []'s head.", user, src, M), 1)
-		else if(prob(10))
+/*		else if(prob(10)) //Fail chance is kind of dumb for something so rarely used.
 			user << "\red The rod slips in your hand."
-			..()
+			..()*/
+		else if(M.mind)
+			if(M.mind.vampire)
+				if(ishuman(M))
+					if(!(VAMP_FULL in M.mind.vampire.powers))
+						user << "\red The rod burns cold in your hand, filling you with grim determination.  You feel the creature's power weaken."
+						M << "<span class='warning'>The nullrod's power interferes with your own!  They are on to you!</span>"
+						M.mind.vampire.nullified = max(8, M.mind.vampire.nullified + 8)
+		//..() Ported from readapted vamp null code.  Original seen down there.  This doesn't need to be here since it's in the loops now.
 		else
 			user << "\red The rod appears to do nothing."
 			for(var/mob/O in viewers(M, null))
 				O.show_message(text("\red [] waves [] over []'s head.", user, src, M), 1)
 			return
-
+/*	if(M.mind)
+		if(M.mind.vampire)
+			if(ishuman(M))
+				if(!(VAMP_FULL in M.mind.vampire.powers))
+					M << "<span class='warning'>The nullrod's power interferes with your own!</span>"
+					M.mind.vampire.nullified = max(5, M.mind.vampire.nullified + 2)
+	..()
+*/
 /obj/item/weapon/nullrod/afterattack(atom/A, mob/user as mob)
 	if (istype(A, /turf/simulated/floor))
 		user << "\blue You hit the floor with the [src]."
@@ -79,6 +94,8 @@
 	slot_flags = SLOT_BELT
 	force = 2
 	throwforce = 1
+	sharp = 1
+	edge = 1
 	w_class = 3
 	attack_verb = list("attacked", "slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
 
@@ -99,6 +116,8 @@
 	slot_flags = SLOT_BELT
 	force = 40
 	throwforce = 10
+	sharp = 1
+	edge = 1
 	w_class = 3
 	attack_verb = list("attacked", "slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
 
@@ -122,6 +141,8 @@
 	slot_flags = SLOT_BELT | SLOT_BACK
 	force = 40
 	throwforce = 10
+	sharp = 1
+	edge = 1
 	w_class = 3
 	attack_verb = list("attacked", "slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
 
@@ -139,6 +160,7 @@
 /obj/item/weapon/harpoon
 	name = "harpoon"
 	sharp = 1
+	edge = 0
 	desc = "Tharr she blows!"
 	icon_state = "harpoon"
 	item_state = "harpoon"
@@ -150,6 +172,7 @@
 /obj/item/weapon/canesword
 	name = "cane sword"
 	sharp = 1
+	edge = 1
 	desc = "A thin, sharp blade with an elegant handle."
 	icon_state = "canesword"
 	item_state = "canesword"

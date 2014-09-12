@@ -106,6 +106,8 @@
 	m_amt = 80
 	origin_tech = "materials=1;engineering=1"
 	attack_verb = list("pinched", "nipped")
+	sharp = 1
+	edge = 1
 
 /obj/item/weapon/wirecutters/New()
 	if(prob(50))
@@ -243,7 +245,7 @@
 		location.hotspot_expose(700, 5)
 
 
-/obj/item/weapon/weldingtool/afterattack(obj/O as obj, mob/user as mob, proximity)
+/obj/item/weapon/weldingtool/afterattack(obj/O as obj|mob, mob/user as mob, proximity)
 	if(!proximity) return
 	if (istype(O, /obj/structure/reagent_dispensers/fueltank) && get_dist(src,O) <= 1 && !src.welding)
 		O.reagents.trans_to(src, max_fuel)
@@ -251,17 +253,40 @@
 		playsound(src.loc, 'sound/effects/refill.ogg', 50, 1, -6)
 		return
 	else if (istype(O, /obj/structure/reagent_dispensers/fueltank) && get_dist(src,O) <= 1 && src.welding)
-		message_admins("[key_name_admin(user)] triggered a fueltank explosion.")
-		log_game("[key_name(user)] triggered a fueltank explosion.")
-		user << "\red That was stupid of you."
 		var/obj/structure/reagent_dispensers/fueltank/tank = O
-		tank.explode()
+		if(tank.armed)
+			user << "You are already heating the [O]."
+			return
+		tank.armed = 1
+		user.visible_message("[user] begins heating the [O].", "You start to heat the [O].")
+		message_admins("[key_name_admin(user)] is attempting a welder bomb at ([loc.x],[loc.y],[loc.z]) - <A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[O.x];Y=[O.y];Z=[O.z]'>JMP</a>")
+		if(do_after(user,100))
+//			var/obj/structure/reagent_dispensers/fueltank/tank = O
+			if(tank.defuse)
+				user.visible_message("[user] melts some of the framework on the [O].", "You melt some of the framework.")
+				tank.defuse = 0
+				tank.armed = 0
+				return
+			message_admins("[key_name_admin(user)] triggered a fueltank explosion.")
+			log_game("[key_name(user)] triggered a fueltank explosion.")
+			user << "\red That was stupid of you."
+			tank.explode()
+			return
+		else
+			tank.armed = 0
+			user << "You thought better of yourself."
+			return
 		return
 	if (src.welding)
 		remove_fuel(1)
 		var/turf/location = get_turf(user)
 		if (istype(location, /turf))
 			location.hotspot_expose(700, 50, 1)
+
+		if(isliving(O))
+			var/mob/living/L = O
+			L.IgniteMob()
+
 	return
 
 
@@ -357,6 +382,8 @@
 	if(istype(user, /mob/living/carbon/human))
 		var/mob/living/carbon/human/H = user
 		var/datum/organ/internal/eyes/E = H.internal_organs["eyes"]
+		if(H.species.flags & IS_SYNTHETIC)
+			return
 		switch(safety)
 			if(1)
 				usr << "\red Your eyes sting a little."
@@ -447,22 +474,28 @@
 	item_state = "crowbar_red"
 
 /obj/item/weapon/weldingtool/attack(mob/M as mob, mob/user as mob)
+
 	if(hasorgans(M))
+
 		var/datum/organ/external/S = M:organs_by_name[user.zone_sel.selecting]
+
 		if (!S) return
 		if(!(S.status & ORGAN_ROBOT) || user.a_intent != "help")
 			return ..()
+
+		if(istype(M,/mob/living/carbon/human))
+			var/mob/living/carbon/human/H = M
+			if(H.species.flags & IS_SYNTHETIC)
+				if(M == user)
+					user << "\red You can't repair damage to your own body - it's against OH&S."
+					return
+
 		if(S.brute_dam)
 			S.heal_damage(15,0,0,1)
-			if(user != M)
-				user.visible_message("\red \The [user] patches some dents on \the [M]'s [S.display_name] with \the [src]",\
-				"\red You patch some dents on \the [M]'s [S.display_name]",\
-				"You hear a welder.")
-			else
-				user.visible_message("\red \The [user] patches some dents on their [S.display_name] with \the [src]",\
-				"\red You patch some dents on your [S.display_name]",\
-				"You hear a welder.")
+			user.visible_message("\red \The [user] patches some dents on \the [M]'s [S.display_name] with \the [src].")
+			return
 		else
 			user << "Nothing to fix!"
+
 	else
 		return ..()

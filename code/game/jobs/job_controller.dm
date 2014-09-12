@@ -349,8 +349,49 @@ var/global/datum/controller/occupations/job_master
 		if(!H)	return 0
 		var/datum/job/job = GetJob(rank)
 		if(job)
+			//Equip custom gear loadout.
+			switch(rank)
+				if("Cyborg","AI","Clown")//Because yeah
+				else
+					if(H.client.prefs.gear && H.client.prefs.gear.len)
+
+						for(var/thing in H.client.prefs.gear)
+							var/datum/gear/G = gear_datums[thing]
+							if(G)
+								var/permitted
+								if(G.allowed_roles)
+									for(var/job_name in G.allowed_roles)
+										if(job.title == job_name)
+											permitted = 1
+								else
+									permitted = 1
+
+								if(G.whitelisted && !is_alien_whitelisted(H, G.whitelisted))
+									permitted = 0
+
+								if(!permitted)
+									H << "\red Your current job or whitelist status does not permit you to spawn with [thing]!"
+									continue
+
+								if(G.slot)
+									if(!H.equip_to_slot_or_del(new G.path(H), G.slot))
+										spawn(6)
+											if(!H.equip_to_slot_or_del(new G.path(H.back), slot_in_backpack))
+												new G.path(H.loc)
+								else
+									if(H.backbag)
+										spawn(6) //I can't beleive this worked: 4 works but I want to give a little time for lags
+											if(!H.equip_to_slot_or_del(new G.path(H.back), slot_in_backpack))
+												new G.path(H.loc)
+									else
+										msg_scopes("G.path = [G.path] | This got called, see if [H.name] has it") // If I never see this in game then Yiss
+										new G.path(H.loc)
+//							spawn(1)
+//								new G.path(get_turf(H.loc))
+			//Equip job items.
 			job.equip(H)
 		else
+			msg_scopes("[H.mind.name] has rank: [rank] and this thing happened.")
 			H << "Your job is [rank] and the game just can't handle it! Please report this bug to an administrator."
 
 		H.job = rank
@@ -423,6 +464,10 @@ var/global/datum/controller/occupations/job_master
 							var/obj/item/weapon/storage/backpack/BPK = new/obj/item/weapon/storage/backpack/satchel(H)
 							new /obj/item/weapon/storage/box/survival(BPK)
 							H.equip_to_slot_or_del(BPK, slot_back,1)
+
+		//TODO: Generalize this by-species
+		if(H.species && (H.species.name == "Tajaran" || H.species.name == "Unathi"))
+			H.equip_to_slot_or_del(new /obj/item/clothing/shoes/sandal(H),slot_shoes,1)
 
 		H << "<B>You are the [alt_title ? alt_title : rank].</B>"
 		H << "<b>As the [alt_title ? alt_title : rank] you answer directly to [job.supervisors]. Special circumstances may change this.</b>"

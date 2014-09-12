@@ -17,9 +17,10 @@ var/global/list/special_roles = list( //keep synced with the defines BE_* in set
 	"ninja" = "true",									 // 10
 	"vox raider" = IS_MODE_COMPILED("heist"),			 // 11
 	"diona" = 1,                                         // 12
+	"vampire" = IS_MODE_COMPILED("vampire") 			 // 13
 )
 
-var/const/MAX_SAVE_SLOTS = 10
+var/const/MAX_SAVE_SLOTS = 20
 
 //used for alternate_option
 #define GET_RANDOM_JOB 0
@@ -54,6 +55,7 @@ datum/preferences
 	var/age = 30						//age of character
 	var/b_type = "A+"					//blood type (not-chooseable)
 	var/underwear = 1					//underwear type
+	var/undershirt = 1					//undershirt type
 	var/backbag = 2						//backpack type
 	var/h_style = "Bald"				//Hair type
 	var/r_hair = 0						//Hair color
@@ -63,12 +65,16 @@ datum/preferences
 	var/r_facial = 0					//Face hair color
 	var/g_facial = 0					//Face hair color
 	var/b_facial = 0					//Face hair color
-	var/s_tone = 0						//Skin color
+	var/s_tone = 0						//Skin tone
+	var/r_skin = 0						//Skin color
+	var/g_skin = 0						//Skin color
+	var/b_skin = 0						//Skin color
 	var/r_eyes = 0						//Eye color
 	var/g_eyes = 0						//Eye color
 	var/b_eyes = 0						//Eye color
-	var/species = "Human"
+	var/species = "Human" 				//Species datum to use.
 	var/language = "None"				//Secondary language
+	var/list/gear 						//Custom/fluff item loadout.
 
 		//Mob preview
 	var/icon/preview_icon = null
@@ -125,6 +131,8 @@ datum/preferences
 					return
 	gender = pick(MALE, FEMALE)
 	real_name = random_name(gender)
+
+	gear = list()
 
 /datum/preferences
 	proc/ZeroSkills(var/forced = 0)
@@ -257,7 +265,27 @@ datum/preferences
 		if(config.allow_Metadata)
 			dat += "<b>OOC Notes:</b> <a href='?_src_=prefs;preference=metadata;task=input'> Edit </a><br>"
 
-		dat += "<br><b>Occupation Choices</b><br>"
+		dat += "<br><b>Custom Loadout:</b> "
+		var/total_cost = 0
+
+		if(isnull(gear) || !islist(gear)) gear = list()
+
+		if(gear && gear.len)
+			dat += "<br>"
+			for(var/gear_name in gear)
+				if(gear_datums[gear_name])
+					var/datum/gear/G = gear_datums[gear_name]
+					total_cost += G.cost
+					dat += "[gear_name] <a href='byond://?src=\ref[user];preference=loadout;task=remove;gear=[gear_name]'>\[remove\]</a><br>"
+
+			dat += "<b>Used:</b> [total_cost] points."
+		else
+			dat += "none."
+
+		if(total_cost < MAX_GEAR_COST)
+			dat += " <a href='byond://?src=\ref[user];preference=loadout;task=input'>\[add\]</a>"
+
+		dat += "<br><br><b>Occupation Choices</b><br>"
 		dat += "\t<a href='?_src_=prefs;preference=job;task=menu'><b>Set Preferences</b></a><br>"
 
 		dat += "<br><table><tr><td><b>Body</b> "
@@ -338,6 +366,8 @@ datum/preferences
 		else
 			dat += "Underwear: <a href ='?_src_=prefs;preference=underwear;task=input'><b>[underwear_f[underwear]]</b></a><br>"
 
+		dat += "Undershirt: <a href='?_src_=prefs;preference=undershirt;task=input'><b>[undershirt_t[undershirt]]</b></a><br>"
+
 		dat += "Backpack Type:<br><a href ='?_src_=prefs;preference=bag;task=input'><b>[backbaglist[backbag]]</b></a><br>"
 
 		dat += "Nanotrasen Relation:<br><a href ='?_src_=prefs;preference=nt_relation;task=input'><b>[nanotrasen_relation]</b></a><br>"
@@ -374,7 +404,10 @@ datum/preferences
 		dat += " Style: <a href='?_src_=prefs;preference=f_style;task=input'>[f_style]</a><br>"
 
 		dat += "<br><b>Eyes</b><br>"
-		dat += "<a href='?_src_=prefs;preference=eyes;task=input'>Change Color</a> <font face='fixedsys' size='3' color='#[num2hex(r_eyes, 2)][num2hex(g_eyes, 2)][num2hex(b_eyes, 2)]'><table  style='display:inline;' bgcolor='#[num2hex(r_eyes, 2)][num2hex(g_eyes, 2)][num2hex(b_eyes)]'><tr><td>__</td></tr></table></font>"
+		dat += "<a href='?_src_=prefs;preference=eyes;task=input'>Change Color</a> <font face='fixedsys' size='3' color='#[num2hex(r_eyes, 2)][num2hex(g_eyes, 2)][num2hex(b_eyes, 2)]'><table  style='display:inline;' bgcolor='#[num2hex(r_eyes, 2)][num2hex(g_eyes, 2)][num2hex(b_eyes)]'><tr><td>__</td></tr></table></font><br>"
+
+		dat += "<br><b>Body Color</b><br>"
+		dat += "<a href='?_src_=prefs;preference=skin;task=input'>Change Color</a> <font face='fixedsys' size='3' color='#[num2hex(r_skin, 2)][num2hex(g_skin, 2)][num2hex(b_skin, 2)]'><table style='display:inline;' bgcolor='#[num2hex(r_skin, 2)][num2hex(g_skin, 2)][num2hex(b_skin)]'><tr><td>__</td></tr></table></font>"
 
 		dat += "<br><br>"
 		if(jobban_isbanned(user, "Syndicate"))
@@ -401,9 +434,9 @@ datum/preferences
 		dat += "<a href='?_src_=prefs;preference=reset_all'>Reset Setup</a>"
 		dat += "</center></body></html>"
 
-		user << browse(dat, "window=preferences;size=560x580")
+		user << browse(dat, "window=preferences;size=560x736")
 
-	proc/SetChoices(mob/user, limit = 16, list/splitJobs = list("Chief Medical Officer"), width = 550, height = 550)
+	proc/SetChoices(mob/user, limit = 16, list/splitJobs = list("Chief Medical Officer"), width = 550, height = 660)
 		if(!job_master)
 			return
 
@@ -415,7 +448,7 @@ datum/preferences
 
 		var/HTML = "<body>"
 		HTML += "<tt><center>"
-		HTML += "<b>Choose occupation chances</b><br>Unavailable occupations are in red.<br><br>"
+		HTML += "<b>Choose occupation chances</b><br>Unavailable occupations are crossed out.<br><br>"
 		HTML += "<center><a href='?_src_=prefs;preference=job;task=close'>\[Done\]</a></center><br>" // Easier to press up here.
 		HTML += "<table width='100%' cellpadding='1' cellspacing='0'><tr><td width='20%'>" // Table within a table for alignment, also allows you to easily add more colomns.
 		HTML += "<table width='100%' cellpadding='1' cellspacing='0'>"
@@ -440,11 +473,11 @@ datum/preferences
 			var/rank = job.title
 			lastJob = job
 			if(jobban_isbanned(user, rank))
-				HTML += "<font color=red>[rank]</font></td><td><font color=red><b> \[BANNED]</b></font></td></tr>"
+				HTML += "<del>[rank]</del></td><td><b> \[BANNED]</b></td></tr>"
 				continue
 			if(!job.player_old_enough(user.client))
 				var/available_in_days = job.available_in_days(user.client)
-				HTML += "<font color=red>[rank]</font></td><td><font color=red> \[IN [(available_in_days)] DAYS]</font></td></tr>"
+				HTML += "<del>[rank]</del></td><td> \[IN [(available_in_days)] DAYS]</td></tr>"
 				continue
 			if((job_civilian_low & ASSISTANT) && (rank != "Assistant"))
 				HTML += "<font color=orange>[rank]</font></td><td></td></tr>"
@@ -552,6 +585,8 @@ datum/preferences
 		return
 
 	proc/SetAntagoptions(mob/user)
+		if(uplinklocation == "" || !uplinklocation)
+			uplinklocation = "PDA"
 		var/HTML = "<body>"
 		HTML += "<tt><center>"
 		HTML += "<b>Antagonist Options</b> <hr />"
@@ -821,6 +856,49 @@ datum/preferences
 				ShowChoices(user)
 			return 1
 
+
+		else if (href_list["preference"] == "loadout")
+
+			if(href_list["task"] == "input")
+
+				var/list/valid_gear_choices = list()
+
+				for(var/gear_name in gear_datums)
+					var/datum/gear/G = gear_datums[gear_name]
+					if(G.whitelisted && !is_alien_whitelisted(user, G.whitelisted))
+						continue
+					valid_gear_choices += gear_name
+
+				var/choice = input(user, "Select gear to add: ") as null|anything in valid_gear_choices
+
+				if(choice && gear_datums[choice])
+
+					var/total_cost = 0
+
+					if(isnull(gear) || !islist(gear)) gear = list()
+
+					if(gear && gear.len)
+						for(var/gear_name in gear)
+							if(gear_datums[gear_name])
+								var/datum/gear/G = gear_datums[gear_name]
+								total_cost += G.cost
+
+					var/datum/gear/C = gear_datums[choice]
+					total_cost += C.cost
+					if(C && total_cost <= MAX_GEAR_COST)
+						gear += choice
+						user << "\blue Added [choice] for [C.cost] points ([MAX_GEAR_COST - total_cost] points remaining)."
+					else
+						user << "\red That item will exceed the maximum loadout cost of [MAX_GEAR_COST] points."
+
+			else if(href_list["task"] == "remove")
+				var/to_remove = href_list["gear"]
+				if(!to_remove) return
+				for(var/gear_name in gear)
+					if(gear_name == to_remove)
+						gear -= gear_name
+						break
+
 		switch(href_list["task"])
 			if("random")
 				switch(href_list["preference"])
@@ -843,12 +921,19 @@ datum/preferences
 					if("underwear")
 						underwear = rand(1,underwear_m.len)
 						ShowChoices(user)
+					if("undershirt")
+						undershirt = rand(1,undershirt_t.len)
+						ShowChoices(user)
 					if("eyes")
 						r_eyes = rand(0,255)
 						g_eyes = rand(0,255)
 						b_eyes = rand(0,255)
 					if("s_tone")
 						s_tone = random_skin_tone()
+					if("s_color")
+						r_skin = rand(0,255)
+						g_skin = rand(0,255)
+						b_skin = rand(0,255)
 					if("bag")
 						backbag = rand(1,4)
 					/*if("skin_style")
@@ -958,12 +1043,15 @@ datum/preferences
 							metadata = sanitize(copytext(new_metadata,1,MAX_MESSAGE_LEN))
 
 					if("b_type")
+//						if(species != "Kocasslani")
 						var/new_b_type = input(user, "Choose your character's blood-type:", "Character Preference") as null|anything in list( "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-" )
 						if(new_b_type)
 							b_type = new_b_type
-
+/*						else
+							b_type = "K"
+*/
 					if("hair")
-						if(species == "Human" || species == "Unathi")
+						if(species == "Human" || species == "Unathi" || species == "Tajaran" || species == "Skrell")
 							var/new_hair = input(user, "Choose your character's hair colour:", "Character Preference") as color|null
 							if(new_hair)
 								r_hair = hex2num(copytext(new_hair, 2, 4))
@@ -1019,6 +1107,15 @@ datum/preferences
 							underwear = underwear_options.Find(new_underwear)
 						ShowChoices(user)
 
+					if("undershirt")
+						var/list/undershirt_options
+						undershirt_options = undershirt_t
+
+						var/new_undershirt = input(user, "Choose your character's undershirt:", "Character Preference") as null|anything in undershirt_options
+						if (new_undershirt)
+							undershirt = undershirt_options.Find(new_undershirt)
+						ShowChoices(user)
+
 					if("eyes")
 						var/new_eyes = input(user, "Choose your character's eye colour:", "Character Preference") as color|null
 						if(new_eyes)
@@ -1026,12 +1123,21 @@ datum/preferences
 							g_eyes = hex2num(copytext(new_eyes, 4, 6))
 							b_eyes = hex2num(copytext(new_eyes, 6, 8))
 
+
 					if("s_tone")
 						if(species != "Human")
 							return
 						var/new_s_tone = input(user, "Choose your character's skin-tone:\n(Light 1 - 220 Dark)", "Character Preference")  as num|null
 						if(new_s_tone)
 							s_tone = 35 - max(min( round(new_s_tone), 220),1)
+
+					if("skin")
+						if(species == "Unathi" || species == "Tajaran" || species == "Skrell")
+							var/new_skin = input(user, "Choose your character's skin colour: ", "Character Preference") as color|null
+							if(new_skin)
+								r_skin = hex2num(copytext(new_skin, 2, 4))
+								g_skin = hex2num(copytext(new_skin, 4, 6))
+								b_skin = hex2num(copytext(new_skin, 6, 8))
 
 					if("ooccolor")
 						var/new_ooccolor = input(user, "Choose your OOC colour:", "Game Preference") as color|null
@@ -1049,7 +1155,7 @@ datum/preferences
 							nanotrasen_relation = new_relation
 
 					if("flavor_text")
-						var/msg = input(usr,"Set the flavor text in your 'examine' verb. This can also be used for OOC notes and preferences!","Flavor Text",html_decode(flavor_text)) as message
+						var/msg = input(usr,"Set the flavor text in your 'examine' verb. This should be something that can be observed at a glance or so!","Flavor Text",html_decode(flavor_text)) as message
 
 						if(msg != null)
 							msg = copytext(msg, 1, MAX_MESSAGE_LEN)
@@ -1263,6 +1369,10 @@ datum/preferences
 		character.g_facial = g_facial
 		character.b_facial = b_facial
 
+		character.r_skin = r_skin
+		character.g_skin = g_skin
+		character.b_skin = b_skin
+
 		character.s_tone = s_tone
 
 		character.h_style = h_style
@@ -1294,6 +1404,10 @@ datum/preferences
 		if(underwear > underwear_m.len || underwear < 1)
 			underwear = 0 //I'm sure this is 100% unnecessary, but I'm paranoid... sue me. //HAH NOW NO MORE MAGIC CLONING UNDIES
 		character.underwear = underwear
+
+		if(undershirt > undershirt_t.len || undershirt < 1)
+			undershirt = 0
+		character.undershirt = undershirt
 
 		if(backbag > 4 || backbag < 1)
 			backbag = 1 //Same as above

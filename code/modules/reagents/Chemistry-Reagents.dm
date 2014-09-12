@@ -118,10 +118,15 @@ datum
 						else //injected
 							M.contract_disease(D, 1, 0)
 				if(self.data && self.data["virus2"] && istype(M, /mob/living/carbon))//infecting...
-					if(method == TOUCH)
-						infect_virus2(M,self.data["virus2"])
-					else
-						infect_virus2(M,self.data["virus2"],1) //injected, force infection!
+					var/list/vlist = self.data["virus2"]
+					if (vlist.len)
+						for (var/ID in vlist)
+							var/datum/disease2/disease/V = vlist[ID]
+
+							if(method == TOUCH)
+								infect_virus2(M,V.getcopy())
+							else
+								infect_virus2(M,V.getcopy(),1) //injected, force infection!
 				if(self.data && self.data["antibodies"] && istype(M, /mob/living/carbon))//... and curing
 					var/mob/living/carbon/C = M
 					C.antibodies |= self.data["antibodies"]
@@ -145,6 +150,9 @@ datum
 						var/datum/disease/newVirus = D.Copy(1)
 						blood_prop.viruses += newVirus
 						newVirus.holder = blood_prop
+
+					if(self.data["virus2"])
+						blood_prop.virus2 = virus_copylist(self.data["virus2"])
 
 
 				else if(istype(self.data["donor"], /mob/living/carbon/monkey))
@@ -254,6 +262,15 @@ datum
 					if(!cube.wrapped)
 						cube.Expand()
 				return
+			reaction_mob(var/mob/living/M, var/method=TOUCH, var/volume)//Splashing people with water can help put them out!
+				if(!istype(M, /mob/living))
+					return
+				if(method == TOUCH)
+					M.adjust_fire_stacks(-(volume / 10))
+				if(M.fire_stacks <= 0)
+					M.ExtinguishMob()
+				return
+
 
 		water/holywater
 			name = "Holy Water"
@@ -268,8 +285,16 @@ datum
 						ticker.mode.remove_cultist(M.mind)
 						for(var/mob/O in viewers(M, null))
 							O.show_message(text("\blue []'s eyes blink and become clearer.", M), 1) // So observers know it worked.
+					if((M.mind in ticker.mode.vampires) && (M.mind.vampire) && (!(VAMP_FULL in M.mind.vampire.powers)))
+						if(!M) M = holder.my_atom
+						M.adjustFireLoss(6)
+						//M.take_organ_damage(0, 1*REM)
+						if(prob(50))
+							for(var/mob/O in viewers(M, null))
+								O.show_message(text("\red []'s skin sizzles and burns.", M), 1)
 				holder.remove_reagent(src.id, 10 * REAGENTS_METABOLISM) //high metabolism to prevent extended uncult rolls.
 				return
+
 
 		lube
 			name = "Space Lube"
@@ -778,6 +803,8 @@ datum
 			on_mob_life(var/mob/living/M as mob)
 				if (volume > overdose)
 					M.hallucination = max(M.hallucination, 2)
+				..()
+				return
 
 		tramadol
 			name = "Tramadol"
@@ -790,6 +817,8 @@ datum
 			on_mob_life(var/mob/living/M as mob)
 				if (volume > overdose)
 					M.hallucination = max(M.hallucination, 2)
+				..()
+				return
 
 		oxycodone
 			name = "Oxycodone"
@@ -803,6 +832,8 @@ datum
 				if (volume > overdose)
 					M.druggy = max(M.druggy, 10)
 					M.hallucination = max(M.hallucination, 3)
+				..()
+				return
 
 
 		virus_food
@@ -907,7 +938,12 @@ datum
 			color = "#660000" // rgb: 102, 0, 0
 			overdose = REAGENTS_OVERDOSE
 
-
+			reaction_mob(var/mob/living/M, var/method=TOUCH, var/volume)//Splashing people with welding fuel to make them easy to ignite!
+				if(!istype(M, /mob/living))
+					return
+				if(method == TOUCH)
+					M.adjust_fire_stacks(volume / 10)
+				return
 			reaction_obj(var/obj/O, var/volume)
 				var/turf/the_turf = get_turf(O)
 				if(!the_turf)
@@ -922,6 +958,62 @@ datum
 				..()
 				return
 
+
+
+		luminol
+			name = "Luminol"
+			id = "luminol"
+			description = "A compound that interacts with blood on the molecular level."
+			reagent_state = LIQUID
+			color = "#F2F3F4"
+			overdose = REAGENTS_OVERDOSE
+
+			reaction_obj(var/obj/O, var/volume)
+				if(istype(O,/obj/effect/decal/cleanable/blood))
+					var/obj/effect/decal/cleanable/blood/W
+					W.invisibility = 1
+					W.color = "#007fff"
+					W.basecolor = "#007fff"
+				else if (istype(O, /obj/item/))
+					var/obj/item/I = O
+					I.reveal_blood()
+					return
+				else
+					return
+
+			reaction_turf(var/turf/T, var/volume)
+				if(volume >= 1)
+					if(istype(T, /turf/simulated))
+						var/turf/simulated/S = T
+						S.dirt = 0
+					T.clean_blood()
+					for(var/obj/effect/decal/cleanable/blood/C in T.contents)
+						C.invisibility = 1
+						C.basecolor = "#007fff"
+						C.color = "#007fff"
+						if(istype(C, /obj/effect/decal/cleanable/blood/tracks/footprints))
+							var/obj/effect/decal/cleanable/blood/tracks/footprints/D = C
+							for(var/datum/fluidtrack/E in D.stack)
+								E.basecolor = "#007fff"
+								D.update_icon()
+					return
+
+			reaction_mob(var/mob/living/carbon/human/H, var/method=TOUCH, var/volume)
+				if(H.head)
+					if(H.head.reveal_blood())
+						H.update_inv_head(0)
+				if(H.wear_suit)
+					if(H.wear_suit.reveal_blood())
+						H.update_inv_wear_suit(0)
+				else if(H.w_uniform)
+					if(H.w_uniform.reveal_blood())
+						H.update_inv_w_uniform(0)
+				if(H.shoes)
+					if(H.shoes.reveal_blood())
+						H.update_inv_shoes(0)
+				else
+					return
+
 		space_cleaner
 			name = "Space cleaner"
 			id = "cleaner"
@@ -931,11 +1023,14 @@ datum
 			overdose = REAGENTS_OVERDOSE
 
 			reaction_obj(var/obj/O, var/volume)
-				if(istype(O,/obj/effect/decal/cleanable))
+				if(istype(O,/obj/effect/decal/cleanable/blood))
+					O.invisibility = INVISIBILITY_MAXIMUM
+					return
+				else if(istype(O,/obj/effect/decal/cleanable/))
 					del(O)
 				else
-					if(O)
-						O.clean_blood()
+					O.clean_blood()
+					return
 
 			reaction_turf(var/turf/T, var/volume)
 				if(volume >= 1)
@@ -944,8 +1039,13 @@ datum
 						S.dirt = 0
 					T.clean_blood()
 					for(var/obj/effect/decal/cleanable/C in T.contents)
-						src.reaction_obj(C, volume)
-						del(C)
+						if(istype (C,/obj/effect/decal/cleanable/blood))
+							src.reaction_obj(C, volume)
+							C.invisibility = INVISIBILITY_MAXIMUM
+							return
+						else
+							src.reaction_obj(C, volume)
+							del(C)
 
 					for(var/mob/living/carbon/slime/M in T)
 						M.adjustToxLoss(rand(5,10))
@@ -1415,6 +1515,24 @@ datum
 			reagent_state = LIQUID
 			color = "#535E66" // rgb: 83, 94, 102
 
+			on_mob_life(var/mob/living/M as mob)
+				if(ishuman(M))
+					if((M.mind in ticker.mode.cult) && prob(10))
+						M << "\blue A cooling sensation from inside you brings you an untold calmness."
+						ticker.mode.remove_cultist(M.mind)
+						for(var/mob/O in viewers(M, null))
+							O.show_message(text("\blue []'s eyes blink and become clearer.", M), 1) // So observers know it worked.
+					if((M.mind in ticker.mode.vampires) && (M.mind.vampire) && (!(VAMP_FULL in M.mind.vampire.powers)))
+						if(!M) M = holder.my_atom
+						M.adjustFireLoss(6)
+						//M.take_organ_damage(0, 1*REM)
+						if(prob(50))
+							for(var/mob/O in viewers(M, null))
+								O.show_message(text("\red []'s skin sizzles and burns.", M), 1)
+				holder.remove_reagent(src.id, 10 * REAGENTS_METABOLISM) //high metabolism to prevent extended uncult rolls.
+				return
+
+
 		nanites
 			name = "Nanomachines"
 			id = "nanites"
@@ -1558,8 +1676,11 @@ datum
 			color = "#E71B00" // rgb: 231, 27, 0
 			toxpwr = 3
 
-			on_mob_life(var/mob/living/M as mob)
+			on_mob_life(var/mob/living/M as mob, var/alien)
 				if(!M) M = holder.my_atom
+				if(alien && alien == IS_VOX)
+					custom_metabolism = 10 //Inhaling O2 constantly puts plasma into voxblood which poisons them to hell. +Metab so one huff isn't death.
+					toxpwr = 12 //This is a hacky way of doing it.  They take 6 points of toxloss every four ticks (Breath tick).  Still less than now.
 				if(holder.has_reagent("inaprovaline"))
 					holder.remove_reagent("inaprovaline", 2*REM)
 				..()
@@ -1574,16 +1695,22 @@ datum
 				var/turf/the_turf = get_turf(O)
 				var/datum/gas_mixture/napalm = new
 				var/datum/gas/volatile_fuel/fuel = new
-				fuel.moles = 5
+				fuel.moles = volume
 				napalm.trace_gases += fuel
 				the_turf.assume_air(napalm)
 			reaction_turf(var/turf/T, var/volume)
 				src = null
 				var/datum/gas_mixture/napalm = new
 				var/datum/gas/volatile_fuel/fuel = new
-				fuel.moles = 5
+				fuel.moles = volume
 				napalm.trace_gases += fuel
 				T.assume_air(napalm)
+				return
+			reaction_mob(var/mob/living/M, var/method=TOUCH, var/volume)//Splashing people with plasma is stronger than fuel!
+				if(!istype(M, /mob/living))
+					return
+				if(method == TOUCH)
+					M.adjust_fire_stacks(volume / 5)
 				return
 
 		toxin/lexorin
@@ -1630,7 +1757,7 @@ datum
 			reagent_state = LIQUID
 			color = "#CF3600" // rgb: 207, 54, 0
 			toxpwr = 4
-			custom_metabolism = 0.4
+			custom_metabolism = 0.1
 
 			on_mob_life(var/mob/living/M as mob)
 				if(!M) M = holder.my_atom
@@ -1645,6 +1772,7 @@ datum
 			description = "Causes severe damage to genetic data."
 			reagent_state = LIQUID
 			toxpwr = 0
+			color = "#CF3600"
 			custom_metabolism = 0.1
 
 			on_mob_life(var/mob/living/M as mob)
@@ -1883,7 +2011,7 @@ datum
 		toxin/beer2	//disguised as normal beer for use by emagged brobots
 			name = "Beer"
 			id = "beer2"
-			description = "An alcoholic beverage made from malted grains, hops, yeast, and water. The fermentation appears to be imcomplete." //If the players manage to analyze this, they deserve to know something is wrong.
+			description = "An alcoholic beverage made from malted grains, hops, yeast, and water. The fermentation appears to be incomplete." //If the players manage to analyze this, they deserve to know something is wrong.
 			reagent_state = LIQUID
 			color = "#664300" // rgb: 102, 67, 0
 			custom_metabolism = 0.15 // Sleep toxins should always be consumed pretty fast
@@ -3752,6 +3880,191 @@ datum
 					M.confused = max(M.confused+15,15)
 				..()
 				return
+
+//////////////////////////SKULL'S BOOZE///////////////////////
+
+		ethanol/daiquiri
+			name = "Daiquiri"
+			id = "daiquiri"
+			description = "A splendid looking cocktail."
+			color = "#664300" // rgb: 102, 67, 0
+			boozepwr = 2
+
+		ethanol/icepick
+			name = "Ice Pick"
+			id = "icepick"
+			description = "Big. And red. Hmm..."
+			color = "#664300" // rgb: 102, 67, 0
+			boozepwr = 1
+
+		ethanol/puosseecafe
+			name = "Puossee-Cafe"
+			id = "puosseecafe"
+			description = "Smells of the French and liquore."
+			color = "#664300" // rgb: 102, 67, 0
+			boozepwr = 2
+
+		ethanol/mintjulep
+			name = "Mint Julep"
+			id = "mintjulep"
+			description = "As old as time itself, but how does it taste?"
+			color = "#664300" // rgb: 102, 67, 0
+			boozepwr = 1
+
+		ethanol/johncollins
+			name = "John Collins"
+			id = "johncollins"
+			description = "Crystal clear, yellow, and smells of gin. How could this go wrong?"
+			color = "#664300" // rgb: 102, 67, 0
+			boozepwr = 3
+
+		ethanol/gimlet
+			name = "Gimlet"
+			id = "gimlet"
+			description = "Small, elegant, and kicks."
+			color = "#664300" // rgb: 102, 67, 0
+			boozepwr = 3
+
+		ethanol/starsandstripes
+			name = "Stars and Stripes"
+			id = "starsandstripes"
+			description = "Someone, somewhere, is saluting."
+			color = "#664300" // rgb: 102, 67, 0
+			boozepwr = 1
+
+		ethanol/metropolitan
+			name = "Metropolitan"
+			id = "metropolitan"
+			description = "What more could you ask for?"
+			color = "#664300" // rgb: 102, 67, 0
+			boozepwr = 2
+
+		ethanol/caruso
+			name = "Caruso"
+			id = "caruso"
+			description = "Green, almost alien."
+			color = "#664300"
+			boozepwr = 2
+
+		ethanol/aprilshower
+			name = "April Shower"
+			id = "aprilshower"
+			description = "Smells of brandy."
+			color = "#664300"
+			boozepwr = 2
+
+		ethanol/carthusiansazerac
+			name = "Carthusian Sazerac"
+			id = "carthusiansazerac"
+			description = "Whiskey and... Syrup?"
+			color = "#664300"
+			boozepwr = 3
+
+		ethanol/deweycocktail
+			name = "Dewey Cocktail"
+			id = "deweycocktail"
+			description = "Colours, look at all the colours!"
+			color = "#664300"
+			boozepwr = 2
+
+		ethanol/chartreusegreen
+			name = "Green Chartreuse"
+			id = "chartreusegreen"
+			description = "A green, strong liqueur."
+			color = "#664300" //FIND PROPER COLOURS!
+			boozepwr = 5
+			dizzy_adj = 4
+			slur_start = 15			//amount absorbed after which mob starts slurring
+			confused_start = 30		//amount absorbed after which mob starts confusing directions
+
+		ethanol/chartreuseyellow
+			name = "Yellow Chartreuse"
+			id = "chartreuseyellow"
+			description = "A yellow, strong liqueur."
+			color = "#664300" //FIND PROPER COLOURS!
+			boozepwr = 5
+			dizzy_adj = 4
+			slur_start = 15			//amount absorbed after which mob starts slurring
+			confused_start = 30		//amount absorbed after which mob starts confusing directions
+
+		ethanol/cremewhite
+			name = "White Creme de Menthe"
+			id = "cremewhite"
+			description = "Mint-flavoured alcohol, in a bottle."
+			color = "#664300" //FIND PROPER COLOURS!
+			boozepwr = 2
+			dizzy_adj = 2
+			slur_start = 35			//amount absorbed after which mob starts slurring
+			confused_start = 140	//amount absorbed after which mob starts confusing directions
+
+		ethanol/cremeyvette
+			name = "Creme de Yvette"
+			id = "cremeyvette"
+			description = "Berry-flavoured alcohol, in a bottle."
+			color = "#664300" //FIND PROPER COLOURS!
+			boozepwr = 2
+			dizzy_adj = 2
+			slur_start = 35			//amount absorbed after which mob starts slurring
+			confused_start = 140	//amount absorbed after which mob starts confusing directions
+
+		ethanol/brandy
+			name = "Brandy"
+			id = "brandy"
+			description = "Cheap knock off for cognac."
+			color = "#664300" //FIND PROPER COLOURS!
+			boozepwr = 2
+			dizzy_adj = 2
+			slur_start = 35			//amount absorbed after which mob starts slurring
+			confused_start = 140	//amount absorbed after which mob starts confusing directions
+
+///////////////////////////////
+///////////////////////////////
+//Dea's Request - Dalekfodder// Lol ART
+///////////////////////////////
+///////////////////////////////
+
+		ethanol/guinnes
+			name = "Guinness"
+			id = "guinnes"
+			description = "Special Guinnes drink"
+			color = "#2E6671"  // dunno -- god dammit -_-
+			boozepwr = 3
+
+		ethanol/drambuie
+			name = "Drambuie"
+			id = "drambuie"
+			description = "A drink that smells like whiskey but tastes different" // LOL.
+			color = "#2E6671" // dunno
+			boozepwr = 4
+
+		ethanol/oldfashioned
+			name = "Old Fashioned"
+			id = "oldfashioned"
+			description = "That looks like from sixties"
+			color = "#2E6671"
+			boozepwr = 3
+
+		ethanol/blindrussian
+			name = "Blind Russian"
+			id = "blindrussian"
+			description = "You can't see?"
+			color = "#2E6671"
+			boozepwr = 5
+
+		ethanol/rustynail
+			name = "Rusty Nail"
+			id = "rustynail"
+			description = "Smells like lemon"
+			color = "#2E6671"
+			boozepwr = 4
+
+		ethanol/tallrussian
+			name = "Tall Black Russian"
+			id = "tallrussian"
+			description = "Just like black russian but taller"
+			color = "#2E6671"
+			boozepwr = 5
+
 
 // Undefine the alias for REAGENTS_EFFECT_MULTIPLER
 #undef REM

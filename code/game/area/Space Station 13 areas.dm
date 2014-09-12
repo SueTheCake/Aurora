@@ -851,6 +851,10 @@ var/list/ghostteleportlocs = list()
  	name = "\improper Library"
  	icon_state = "library"
 
+/area/thinktank
+ 	name = "\improper Think Tank"
+ 	icon_state = "thinktank"
+
 /area/chapel/main
 	name = "\improper Chapel"
 	icon_state = "chapel"
@@ -937,6 +941,11 @@ var/list/ghostteleportlocs = list()
 //Engineering
 
 /area/engine
+
+	drone_fabrication
+		name = "\improper Drone Fabrication"
+		icon_state = "engine"
+
 	engine_smes
 		name = "Engineering SMES"
 		icon_state = "engine_smes"
@@ -956,6 +965,10 @@ var/list/ghostteleportlocs = list()
 
 	engineering_monitoring
 		name = "\improper Engineering Monitoring Room"
+		icon_state = "engine_monitoring"
+
+	atmos_monitoring
+		name = "\improper Atmospherics Monitoring Room"
 		icon_state = "engine_monitoring"
 
 	engineering
@@ -978,6 +991,18 @@ var/list/ghostteleportlocs = list()
 		name = "\improper Engineering Hallway"
 		icon_state = "engine_hallway"
 
+	engine_hallway
+		name = "\improper Engine Room Hallway"
+		icon_state = "engine_hallway"
+
+	engine_eva
+		name = "\improper Engine EVA"
+		icon_state = "engine_eva"
+
+	engine_eva_maintenance
+		name = "\improper Engine EVA Maintenance"
+		icon_state = "engine_eva"
+
 	workshop
 		name = "\improper Engineering Workshop"
 		icon_state = "engine_storage"
@@ -985,6 +1010,10 @@ var/list/ghostteleportlocs = list()
 	locker_room
 		name = "\improper Engineering Locker Room"
 		icon_state = "engine_storage"
+
+	gravity_gen
+		name = "\improper Gravity Generator"
+		icon_state = "engine"
 
 
 //Solars
@@ -1239,6 +1268,11 @@ var/list/ghostteleportlocs = list()
 	name = "\improper Firing Range"
 	icon_state = "firingrange"
 
+/area/security/tactical
+	name = "\improper Tactical Equipment"
+	icon_state = "Tactical"
+
+
 /*
 	New()
 		..()
@@ -1336,41 +1370,41 @@ var/list/ghostteleportlocs = list()
 	name = "Hydroponics"
 	icon_state = "hydro"
 
-//Toxins
+//rnd (Research and Development
 
-/area/toxins/lab
+/area/rnd/lab
 	name = "\improper Research and Development"
 	icon_state = "toxlab"
 
-/area/toxins/hallway
+/area/rnd/hallway
 	name = "\improper Research Lab"
 	icon_state = "toxlab"
 
-/area/toxins/rdoffice
+/area/rnd/rdoffice
 	name = "\improper Research Director's Office"
 	icon_state = "head_quarters"
 
-/area/toxins/supermatter
+/area/rnd/supermatter
 	name = "\improper Supermatter Lab"
 	icon_state = "toxlab"
 
-/area/toxins/xenobiology
+/area/rnd/xenobiology
 	name = "\improper Xenobiology Lab"
 	icon_state = "toxlab"
 
-/area/toxins/storage
+/area/rnd/storage
 	name = "\improper Toxins Storage"
 	icon_state = "toxstorage"
 
-/area/toxins/test_area
+/area/rnd/test_area
 	name = "\improper Toxins Test Area"
 	icon_state = "toxtest"
 
-/area/toxins/mixing
+/area/rnd/mixing
 	name = "\improper Toxins Mixing Room"
 	icon_state = "toxmix"
 
-/area/toxins/misc_lab
+/area/rnd/misc_lab
 	name = "\improper Miscellaneous Research"
 	icon_state = "toxmisc"
 
@@ -1586,6 +1620,10 @@ var/list/ghostteleportlocs = list()
 /area/turret_protected/ai_upload_foyer
 	name = "AI Upload Access"
 	icon_state = "ai_foyer"
+
+/area/turret_protected/ai_server_room
+	name = "AI Server Room"
+	icon_state = "ai_server"
 
 /area/turret_protected/ai
 	name = "\improper AI Chamber"
@@ -1890,7 +1928,7 @@ var/list/the_station_areas = list (
 	/area/quartermaster,
 	/area/janitor,
 	/area/hydroponics,
-	/area/toxins,
+	/area/rnd,
 	/area/storage,
 	/area/construction,
 	/area/ai_monitored/storage/eva, //do not try to simplify to "/area/ai_monitored" --rastaf0

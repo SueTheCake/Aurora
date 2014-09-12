@@ -22,7 +22,7 @@
 	if(loc)
 		environment = loc.return_air()
 
-	if (stat != DEAD) 
+	if (stat != DEAD)
 		if(!istype(src,/mob/living/carbon/monkey/diona)) //still breathing
 			//First, resolve location and get a breath
 			if(air_master.current_cycle%4==2)
@@ -59,6 +59,9 @@
 	if(environment)	// More error checking -- TLE
 		handle_environment(environment)
 
+	//check if we're on fire
+	handle_fire()
+
 	//Status updates, death etc.
 	handle_regular_status_updates()
 	update_canmove()
@@ -79,7 +82,7 @@
 		if(prob(1))
 			emote(pick("scratch","jump","roll","tail"))
 	updatehealth()
-	
+
 
 /mob/living/carbon/monkey/calculate_affecting_pressure(var/pressure)
 	..()
@@ -174,9 +177,9 @@
 			for (var/ID in virus2)
 				var/datum/disease2/disease/V = virus2[ID]
 				V.cure(src)
-		
+
 		for(var/obj/effect/decal/cleanable/O in view(1,src))
-			if(istype(O,/obj/effect/decal/cleanable/blood)) 
+			if(istype(O,/obj/effect/decal/cleanable/blood))
 				var/obj/effect/decal/cleanable/blood/B = O
 				if(B.virus2.len)
 					for (var/ID in B.virus2)
@@ -397,26 +400,33 @@
 		if(!environment)
 			return
 
-		if(abs(environment.temperature - 293.15) < 20 && abs(bodytemperature - 310.14) < 0.5 && environment.toxins < MOLES_PLASMA_VISIBLE)
-			return // Temperatures are within normal ranges, fuck all this processing. ~Ccomp		
-		
+		//Moved these vars here for use in the fuck-it-skip-processing check.
+		var/pressure = environment.return_pressure()
+		var/adjusted_pressure = calculate_affecting_pressure(pressure) //Returns how much pressure actually affects the mob.
+
+		if(adjusted_pressure < WARNING_HIGH_PRESSURE && adjusted_pressure > WARNING_LOW_PRESSURE && abs(environment.temperature - 293.15) < 20 && abs(bodytemperature - 310.14) < 0.5 && environment.toxins < MOLES_PLASMA_VISIBLE)
+
+			//Hopefully should fix the walk-inside-still-pressure-warning issue.
+			if(pressure_alert)
+				pressure_alert = 0
+
+			return // Temperatures are within normal ranges, fuck all this processing. ~Ccomp
+
 		var/environment_heat_capacity = environment.heat_capacity()
 		if(istype(get_turf(src), /turf/space))
 			var/turf/heat_turf = get_turf(src)
 			environment_heat_capacity = heat_turf.heat_capacity
 
-		if((environment.temperature > (T0C + 50)) || (environment.temperature < (T0C + 10)))
-			var/transfer_coefficient = 1
+		if(!on_fire)
+			if((environment.temperature > (T0C + 50)) || (environment.temperature < (T0C + 10)))
+				var/transfer_coefficient = 1
 
-			handle_temperature_damage(HEAD, environment.temperature, environment_heat_capacity*transfer_coefficient)
+				handle_temperature_damage(HEAD, environment.temperature, environment_heat_capacity*transfer_coefficient)
 
 		if(stat==2)
 			bodytemperature += 0.1*(environment.temperature - bodytemperature)*environment_heat_capacity/(environment_heat_capacity + 270000)
 
 		//Account for massive pressure differences
-
-		var/pressure = environment.return_pressure()
-		var/adjusted_pressure = calculate_affecting_pressure(pressure) //Returns how much pressure actually affects the mob.
 		switch(adjusted_pressure)
 			if(HAZARD_HIGH_PRESSURE to INFINITY)
 				adjustBruteLoss( min( ( (adjusted_pressure / HAZARD_HIGH_PRESSURE) -1 )*PRESSURE_DAMAGE_COEFFICIENT , MAX_HIGH_PRESSURE_DAMAGE) )
@@ -468,7 +478,7 @@
 				adjustToxLoss(-1)
 				adjustOxyLoss(-1)
 
-		if(reagents && reagents.reagent_list.len) 
+		if(reagents && reagents.reagent_list.len)
 			reagents.metabolize(src,alien)
 
 		if (drowsyness)
@@ -682,3 +692,11 @@
 	proc/handle_changeling()
 		if(mind && mind.changeling)
 			mind.changeling.regenerate()
+
+	///FIRE CODE
+	handle_fire()
+		if(..())
+			return
+		adjustFireLoss(6)
+		return
+	//END FIRE CODE

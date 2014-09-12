@@ -23,6 +23,7 @@
 	"copper","mercury","radium","water","ethanol","sugar","sacid","tungsten")
 	var/list/broken_requirements = list()
 	var/broken_on_spawn = 0
+	moveable = 1
 
 /obj/machinery/chem_dispenser/proc/recharge()
 	if(stat & (BROKEN|NOPOWER)) return
@@ -180,7 +181,7 @@
 	add_fingerprint(usr)
 	return 1 // update UIs attached to this object
 
-/obj/machinery/chem_dispenser/attackby(var/obj/item/weapon/reagent_containers/B as obj, var/mob/user as mob)
+/obj/machinery/chem_dispenser/attackby(var/obj/item/weapon/B as obj, var/mob/user as mob)
 	if(isrobot(user))
 		return
 
@@ -208,6 +209,21 @@
 		user << "You set [B] on the machine."
 		nanomanager.update_uis(src) // update all UIs attached to src
 		return
+
+	if(istype(B, /obj/item/weapon/wrench))
+		if(moveable == 1)
+			switch(anchored)
+				if(0)
+					playsound(src.loc, 'sound/items/Ratchet.ogg', 75, 1)
+					spawn(10)
+					user.visible_message("[user.name] secures [src.name] to the floor.", "You secure [src.name] to the floor.", "You hear a ratchet")
+					anchored = 1
+				if(1)
+					playsound(src.loc, 'sound/items/Ratchet.ogg', 75, 1)
+					spawn(10)
+					user.visible_message("[user.name] unsecures [src.name] reinforcing bolts from the floor.", "You unsecure [src.name] from the floor.", "You hear a ratchet")
+					anchored = 0
+	return
 
 /obj/machinery/chem_dispenser/attack_ai(mob/user as mob)
 	return src.attack_hand(user)
@@ -281,6 +297,7 @@
 	icon_state = "mixer0"
 	use_power = 1
 	idle_power_usage = 20
+	moveable = 1
 	var/beaker = null
 	var/obj/item/weapon/storage/pill_bottle/loaded_pill_bottle = null
 	var/mode = 0
@@ -293,6 +310,7 @@
 	var/max_pill_count = 20
 
 /obj/machinery/chem_master/New()
+	..()
 	var/datum/reagents/R = new/datum/reagents(100)
 	reagents = R
 	R.my_atom = src
@@ -324,6 +342,21 @@
 
 /obj/machinery/chem_master/attackby(var/obj/item/weapon/B as obj, var/mob/user as mob)
 
+	if(istype(B, /obj/item/weapon/wrench))
+		if(moveable == 1)
+			switch(anchored)
+				if(0)
+					playsound(src.loc, 'sound/items/Ratchet.ogg', 75, 1)
+					spawn(10)
+					user.visible_message("[user.name] secures [src.name] to the floor.", "You secure [src.name] to the floor.", "You hear a ratchet")
+					anchored = 1
+				if(1)
+					playsound(src.loc, 'sound/items/Ratchet.ogg', 75, 1)
+					spawn(10)
+					user.visible_message("[user.name] unsecures [src.name] reinforcing bolts from the floor.", "You unsecure [src.name] from the floor.", "You hear a ratchet")
+					anchored = 0
+		return
+
 	if(istype(B, /obj/item/weapon/reagent_containers/glass))
 
 		if(src.beaker)
@@ -336,7 +369,7 @@
 		src.updateUsrDialog()
 		icon_state = "mixer1"
 
-	else if(istype(B, /obj/item/weapon/storage/pill_bottle))
+	if(istype(B, /obj/item/weapon/storage/pill_bottle))
 
 		if(src.loaded_pill_bottle)
 			user << "A pill bottle is already loaded into the machine."
@@ -599,8 +632,9 @@
 	anchored = 1
 	icon = 'icons/obj/chemical.dmi'
 	icon_state = "mixer0"
-	use_power = 1
-	idle_power_usage = 20
+	circuit = /obj/item/weapon/circuitboard/pandemic
+	//use_power = 1
+	//idle_power_usage = 20		//defaults make more sense.
 	var/temphtml = ""
 	var/wait = null
 	var/obj/item/weapon/reagent_containers/glass/beaker = null
@@ -829,33 +863,7 @@
 
 
 /obj/machinery/computer/pandemic/attackby(var/obj/I as obj, var/mob/user as mob)
-	if(istype(I, /obj/item/weapon/screwdriver))
-		playsound(src.loc, 'sound/items/Screwdriver.ogg', 50, 1)
-		if(do_after(user, 20))
-			if (src.stat & BROKEN)
-				user << "\blue The broken glass falls out."
-				var/obj/structure/computerframe/A = new /obj/structure/computerframe(src.loc)
-				new /obj/item/weapon/shard(src.loc)
-				var/obj/item/weapon/circuitboard/pandemic/M = new /obj/item/weapon/circuitboard/pandemic(A)
-				for (var/obj/C in src)
-					C.loc = src.loc
-				A.circuit = M
-				A.state = 3
-				A.icon_state = "3"
-				A.anchored = 1
-				del(src)
-			else
-				user << "\blue You disconnect the monitor."
-				var/obj/structure/computerframe/A = new /obj/structure/computerframe( src.loc )
-				var/obj/item/weapon/circuitboard/pandemic/M = new /obj/item/weapon/circuitboard/pandemic(A)
-				for (var/obj/C in src)
-					C.loc = src.loc
-				A.circuit = M
-				A.state = 4
-				A.icon_state = "4"
-				A.anchored = 1
-				del(src)
-	else if(istype(I, /obj/item/weapon/reagent_containers/glass))
+	if(istype(I, /obj/item/weapon/reagent_containers/glass))
 		if(stat & (NOPOWER|BROKEN)) return
 		if(src.beaker)
 			user << "A beaker is already loaded into the machine."
@@ -884,6 +892,7 @@
 	use_power = 1
 	idle_power_usage = 5
 	active_power_usage = 100
+	moveable = 1
 	var/inuse = 0
 	var/obj/item/weapon/reagent_containers/beaker = null
 	var/limit = 10
@@ -1010,6 +1019,15 @@
 	var/processing_chamber = ""
 	var/beaker_contents = ""
 	var/dat = ""
+
+	if(istype(user, /mob/living/carbon/human))
+		var/mob/living/carbon/human/M = user
+		if(M.h_style == "Floorlength Braid" || M.h_style == "Very Long Hair")
+			if(prob(10))
+				M.apply_damage(30, BRUTE, "head")
+				M.apply_damage(45, HALLOSS)
+				M.visible_message("\red [user]'s hair catches in the [src]!", "\red Your hair gets caught in the [src]!")
+				M.say("*scream")
 
 	if(!inuse)
 		for (var/obj/item/O in holdingitems)
@@ -1260,3 +1278,42 @@
 		O.reagents.trans_to(beaker, amount)
 		if(!O.reagents.total_volume)
 			remove_object(O)
+
+/obj/machinery/reagentgrinder/MouseDrop_T(mob/living/carbon/human/target as mob, mob/user as mob)
+	if (!istype(target) || target.buckled || get_dist(user, src) > 1 || get_dist(user, target) > 1 || user.stat || istype(user, /mob/living/silicon/ai))
+		return
+	if(target == user)
+		if(target.h_style == "Floorlength Braid" || target.h_style == "Very Long Hair")
+			user.visible_message("\blue [user] looks like they're about to feed their own hair into the [src], but think better of it.", "\blue You grasp your hair and are about to feed it into the [src], but stop and come to your sense.")
+			return
+	src.add_fingerprint(user)
+	var/target_loc = target.loc
+	if(target != user && !user.restrained() && !user.stat && !user.weakened && !user.stunned && !user.paralysis)
+		if(target.h_style != "Cut Hair" || target.h_style != "Short Hair" || target.h_style != "Skinhead" || target.h_style != "Buzzcut" || target.h_style != "Crewcut" || target.h_style != "Bald" || target.h_style != "Balding Hair")
+			user.visible_message("\red [user] starts feeding [target]'s hair into the [src]!", "\red You start feeding [target]'s hair into the [src]!")
+		if(!do_after(usr, 50))
+			return
+		if(target_loc != target.loc)
+			return
+		if(target != user && !user.restrained() && !user.stat && !user.weakened && !user.stunned && !user.paralysis)
+			user.visible_message("\red [user] feeds the [target]'s hair into the [src] and flicks it on!", "\red You turn the [src] on!")
+			target.apply_damage(30, BRUTE, "head")
+			target.apply_damage(25, HALLOSS)
+			target.say("*scream")
+
+			user.attack_log += text("\[[time_stamp()]\] <font color='red'>Has fed [target.name]'s ([target.ckey]) hair into a [src].</font>")
+			target.attack_log += text("\[[time_stamp()]\] <font color='orange'>Has had their hair fed into [src] by [user.name] ([user.ckey])</font>")
+			msg_admin_attack("[user] ([user.ckey]) fed [target]'s ([target.ckey]) in a [src]. (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[user.x];Y=[user.y];Z=[user.z]'>JMP</a>)")
+		else
+			return
+		if(!do_after(usr, 35))
+			return
+		if(target_loc != target.loc)
+			return
+		if(target != user && !user.restrained() && !user.stat && !user.weakened && !user.stunned && !user.paralysis)
+			user.visible_message("\red [user] starts tugging on [target]'s head as the [src] keeps running!", "\red You start tugging on [target]'s head!")
+			target.apply_damage(25, BRUTE, "head")
+			target.apply_damage(10, HALLOSS)
+			target.say("*scream")
+			spawn(10)
+			user.visible_message("\red [user] stops the [src] and leaves [target] resting as they are.", "\red You turn the [src] off and let go of [target].")

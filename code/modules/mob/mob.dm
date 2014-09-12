@@ -13,6 +13,9 @@
 		living_mob_list += src
 	..()
 
+/mob/proc/generate_name()
+	return name
+
 /mob/proc/Cell()
 	set category = "Admin"
 	set hidden = 1
@@ -705,6 +708,8 @@ note dizziness decrements automatically in the mob's Life() proc.
 				stat(null,"Tick-[master_controller.ticker_cost]\tALL-[master_controller.total_cost]")
 			else
 				stat(null,"MasterController-ERROR")
+			if(delta_level:active)
+				stat(null,"Delta Countdown-[delta_level.timeleft()]")
 
 	if(listed_turf && client)
 		if(get_dist(listed_turf,src) > 1)
@@ -745,8 +750,6 @@ note dizziness decrements automatically in the mob's Life() proc.
 		anchored = 1
 		canmove = 0
 		if( istype(buckled,/obj/structure/stool/bed/chair) )
-			lying = 0
-		else if( istype(buckled,/obj/structure/target_stake) )
 			lying = 0
 		else
 			lying = 1

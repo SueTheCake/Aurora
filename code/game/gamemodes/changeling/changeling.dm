@@ -54,6 +54,10 @@ var/list/possible_changeling_IDs = list("Alpha","Beta","Gamma","Delta","Epsilon"
 		for(var/job in restricted_jobs)//Removing robots from the list
 			if(player.assigned_role == job)
 				possible_changelings -= player
+				continue
+//This could be the fuckup with game start
+//			if(player.current.isipc()) //Removing ipc's
+//				possible_changelings -= player
 
 	changeling_amount = 1 + round(num_players() / 10)
 
@@ -87,6 +91,9 @@ var/list/possible_changeling_IDs = list("Alpha","Beta","Gamma","Delta","Epsilon"
 	//If they have two objectives as well as absorb, they must survive rather than escape
 	//No escape alone because changelings aren't suited for it and it'd probably just lead to rampant robusting
 	//If it seems like they'd be able to do it in play, add a 10% chance to have to escape alone
+
+	if (config.objectives_disabled)
+		return
 
 	var/datum/objective/absorb/absorb_objective = new
 	absorb_objective.owner = changeling
@@ -215,6 +222,8 @@ var/list/possible_changeling_IDs = list("Alpha","Beta","Gamma","Delta","Epsilon"
 
 /datum/changeling //stores changeling powers, changeling recharge thingie, changeling absorbed DNA and changeling ID (for changeling hivemind)
 	var/list/absorbed_dna = list()
+	var/list/absorbed_species = list()
+	var/list/absorbed_languages = list()
 	var/absorbedcount = 0
 	var/chem_charges = 20
 	var/chem_recharge_rate = 0.5

@@ -17,11 +17,27 @@
 	icon_state= "bolter"
 	damage = 50
 	flag = "bullet"
-
+	sharp = 1
+	edge = 1
 
 	on_hit(var/atom/target, var/blocked = 0)
 		explosion(target, -1, 0, 2)
 		return 1
+
+/obj/item/projectile/bullet/gyro/law
+	name ="high-ex round"
+	icon_state= "bolter"
+	damage = 15
+	flag = "bullet"
+
+/obj/item/projectile/bullet/gyro/law/on_hit(var/atom/target, var/blocked = 0)
+
+	explosion(target, -1, 0, 2)
+	sleep(0)
+	var/obj/T = target
+	var/throwdir = get_dir(firer,target)
+	T.throw_at(get_edge_target_turf(target, throwdir),3,3)
+	return 1
 
 /obj/item/projectile/temp
 	name = "freeze beam"
@@ -30,13 +46,13 @@
 	damage_type = BURN
 	nodamage = 1
 	flag = "energy"
-	var/temperature = 300
+	//var/temperature = 300
 
 
 	on_hit(var/atom/target, var/blocked = 0)//These two could likely check temp protection on the mob
 		if(istype(target, /mob/living))
 			var/mob/M = target
-			M.bodytemperature = temperature
+			M.bodytemperature = -273
 		return 1
 
 /obj/item/projectile/meteor

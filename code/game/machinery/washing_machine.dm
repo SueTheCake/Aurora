@@ -43,6 +43,9 @@
 	for(var/atom/A in contents)
 		A.clean_blood()
 
+	for(var/obj/item/clothing/C in contents)
+		C.gsr = 0
+
 	for(var/obj/item/I in contents)
 		I.decontaminate()
 
@@ -147,10 +150,10 @@
 			if(new_shoe_icon_state && new_shoe_name)
 				for(var/obj/item/clothing/shoes/S in contents)
 					//world << "DEBUG: YUP! FOUND IT!"
-					if (S.chained == 1)
-						S.chained = 0
-						S.slowdown = SHOES_SLOWDOWN
-						new /obj/item/weapon/handcuffs( src )
+					if (istype(S,/obj/item/clothing/shoes/orange))
+						var/obj/item/clothing/shoes/orange/L = S
+						if (L.chained)
+							L.remove_cuffs()
 					S.icon_state = new_shoe_icon_state
 					S.item_color = wash_color
 					S.name = new_shoe_name

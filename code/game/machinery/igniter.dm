@@ -1,6 +1,6 @@
 /obj/machinery/igniter
 	name = "igniter"
-	desc = "It's useful for igniting plasma."
+	desc = "It's useful for igniting flammable items."
 	icon = 'icons/obj/stationobjs.dmi'
 	icon_state = "igniter1"
 	var/id = null
@@ -14,8 +14,6 @@
 	return src.attack_hand(user)
 
 /obj/machinery/igniter/attack_paw(mob/user as mob)
-	if ((ticker && ticker.mode.name == "monkey"))
-		return src.attack_hand(user)
 	return
 
 /obj/machinery/igniter/attack_hand(mob/user as mob)
@@ -72,6 +70,10 @@
 //		src.sd_SetLuminosity(0)
 
 /obj/machinery/sparker/attackby(obj/item/weapon/W as obj, mob/user as mob)
+	if(istype(W, /obj/item/device/signaltool))
+		var/obj/item/device/signaltool/ST = W
+		id = ST.change_ID(id)
+		return
 	if(istype(W, /obj/item/device/detective_scanner))
 		return
 	if (istype(W, /obj/item/weapon/screwdriver))

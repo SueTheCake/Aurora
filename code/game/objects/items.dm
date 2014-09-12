@@ -4,6 +4,7 @@
 	var/image/blood_overlay = null //this saves our blood splatter overlay, which will be processed not to go over the edges of the sprite
 	var/abstract = 0
 	var/item_state = null
+	var/wasbloody = 0
 	var/r_speed = 1.0
 	var/health = null
 	var/burn_point = null
@@ -103,7 +104,7 @@
 			size = "huge"
 		else
 	//if ((CLUMSY in usr.mutations) && prob(50)) t = "funny-looking"
-	usr << "This is a [src.blood_DNA ? "bloody " : ""]\icon[src][src.name]. It is a [size] item."
+	usr << "This is a [src.blood_DNA ? "bloody " : ""][src.wasbloody == 2 ? "luminol covered " : ""]\icon[src][src.name]. It is a [size] item."
 	if(src.desc)
 		usr << src.desc
 	return
@@ -210,6 +211,7 @@
 /obj/item/proc/moved(mob/user as mob, old_loc as turf)
 	return
 
+// apparently called whenever an item is removed from a slot, container, or anything else.
 /obj/item/proc/dropped(mob/user as mob)
 	..()
 
@@ -236,18 +238,6 @@
 // note this isn't called during the initial dressing of a player
 /obj/item/proc/equipped(var/mob/user, var/slot)
 	return
-
-//returns 1 if the item is equipped by a mob, 0 otherwise.
-//This might need some error trapping, not sure if get_equipped_items() is safe for non-human mobs.
-/obj/item/proc/is_equipped()
-	if(!ismob(loc)) 
-		return 0
-	
-	var/mob/M = loc
-	if(src in M.get_equipped_items())
-		return 1
-	else
-		return 0
 
 //the mob M is attempting to equip this item into the slot passed through as 'slot'. Return 1 if it can do this and 0 if it can't.
 //If you are making custom procs but would like to retain partial or complete functionality of this one, include a 'return ..()' to where you want this to happen.
@@ -563,9 +553,21 @@
 	. = ..()
 	if(blood_overlay)
 		overlays.Remove(blood_overlay)
+		blood_overlay = null
 	if(istype(src, /obj/item/clothing/gloves))
 		var/obj/item/clothing/gloves/G = src
 		G.transfer_blood = 0
+	if(wasbloody == 2)
+		wasbloody = 1
+		return
+
+/obj/item/proc/reveal_blood()
+	if(wasbloody == 1)
+		wasbloody = 2
+		generate_blood_overlay()
+		blood_overlay.color = "#007fff"
+		/*blood_overlay.invisibility = INVISIBILITY_LUMINOL*/
+		overlays += blood_overlay
 
 
 /obj/item/add_blood(mob/living/carbon/human/M as mob)
@@ -589,6 +591,8 @@
 	if(blood_DNA[M.dna.unique_enzymes])
 		return 0 //already bloodied with this blood. Cannot add more.
 	blood_DNA[M.dna.unique_enzymes] = M.dna.b_type
+	stored_DNA[M.dna.unique_enzymes] = M.dna.b_type
+	wasbloody = 1
 	return 1 //we applied blood to the item
 
 /obj/item/proc/generate_blood_overlay()

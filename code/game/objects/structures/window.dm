@@ -18,6 +18,11 @@
 
 
 /obj/structure/window/bullet_act(var/obj/item/projectile/Proj)
+
+	//Tasers and the like should not damage windows.
+	if(Proj.damage_type == HALLOSS)
+		return
+
 	health -= Proj.damage
 	..()
 	if(health <= 0)
@@ -26,6 +31,13 @@
 		del(src)
 	return
 
+
+// This should result in the same materials used to make the window.
+/obj/structure/window/proc/destroy()
+	new /obj/item/weapon/shard(loc)
+	if(reinf)
+		new /obj/item/stack/rods(loc)
+	del(src)
 
 /obj/structure/window/ex_act(severity)
 	switch(severity)
@@ -168,17 +180,20 @@
 					M.apply_damage(7)
 					hit(10)
 					visible_message("\red [user] slams [M] against \the [src]!")
+					msg_admin_attack("[user.name]([user.ckey]) slams [M.name]'s([M.ckey]) against \the [src]!")
 				if(2)
 					if (prob(50))
 						M.Weaken(1)
 					M.apply_damage(10)
 					hit(25)
 					visible_message("\red <b>[user] bashes [M] against \the [src]!</b>")
+					msg_admin_attack("[user.name]([user.ckey]) bashes [M.name]'s([M.ckey]) against \the [src]!")
 				if(3)
 					M.Weaken(5)
 					M.apply_damage(20)
 					hit(50)
 					visible_message("\red <big><b>[user] crushes [M] against \the [src]!</b></big>")
+					msg_admin_attack("[user.name]([user.ckey]) crushes [M.name]'s([M.ckey]) against \the [src]!")
 			return
 	if(istype(W, /obj/item/weapon/screwdriver))
 		if(reinf && state >= 1)
@@ -356,7 +371,7 @@
 
 		return
 
-/obj/structure/window/temperature_expose(datum/gas_mixture/air, exposed_temperature, exposed_volume)
+/obj/structure/window/fire_act(datum/gas_mixture/air, exposed_temperature, exposed_volume)
 	if(exposed_temperature > T0C + 800)
 		hit(round(exposed_volume / 100), 0)
 	..()
@@ -376,7 +391,7 @@
 	shardtype = /obj/item/weapon/shard/plasma
 	health = 120
 
-/obj/structure/window/plasmabasic/temperature_expose(datum/gas_mixture/air, exposed_temperature, exposed_volume)
+/obj/structure/window/plasmabasic/fire_act(datum/gas_mixture/air, exposed_temperature, exposed_volume)
 	if(exposed_temperature > T0C + 32000)
 		hit(round(exposed_volume / 1000), 0)
 	..()
@@ -390,7 +405,7 @@
 	reinf = 1
 	health = 160
 
-/obj/structure/window/plasmareinforced/temperature_expose(datum/gas_mixture/air, exposed_temperature, exposed_volume)
+/obj/structure/window/plasmareinforced/fire_act(datum/gas_mixture/air, exposed_temperature, exposed_volume)
 	return
 
 /obj/structure/window/reinforced
@@ -414,3 +429,16 @@
 	icon_state = "fwindow"
 	basestate = "fwindow"
 	health = 30
+
+/obj/structure/window/shuttle
+	name = "shuttle window"
+	desc = "It looks rather strong. Might take a few good hits to shatter it."
+	icon = 'icons/obj/podwindows.dmi'
+	icon_state = "window"
+	basestate = "window"
+	health = 40
+	reinf = 1
+	dir = 5
+
+	update_icon() //icon_state has to be set manually
+		return

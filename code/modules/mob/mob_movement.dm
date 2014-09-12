@@ -206,9 +206,13 @@
 	if(!mob.lastarea)
 		mob.lastarea = get_area(mob.loc)
 
+	if(mob.floating && mob.mob_has_gravity(mob.loc))
+		mob.float(0)
+	else if(!mob.floating && !mob.mob_has_gravity(mob.loc))
+		mob.float(1)
+
 	if((istype(mob.loc, /turf/space)) || (mob.lastarea.has_gravity == 0))
 		if(!mob.Process_Spacemove(0))	return 0
-
 
 	if(isobj(mob.loc) || ismob(mob.loc))//Inside an object, tell it we moved
 		var/atom/O = mob.loc
@@ -454,3 +458,28 @@
 
 	prob_slip = round(prob_slip)
 	return(prob_slip)
+
+/mob/proc/update_gravity()
+	return
+
+/mob/proc/mob_has_gravity(turf/T)
+	return has_gravity(src, T)
+
+/mob/proc/mob_negates_gravity()
+	return 0
+
+/mob/proc/float(var/on)
+	if(on)
+		if(!real_name)
+			msg_scopes("[name] was made to float")
+		else
+			msg_scopes("[real_name] was made to float")
+		animate(src, pixel_y = 2, time = 10, loop = -1)
+		floating = 1
+	else
+		if(!real_name)
+			msg_scopes("[name] was made to stop floating")
+		else
+			msg_scopes("[real_name] was made to stop floating")
+		animate(src, pixel_y = initial(pixel_y), time = 10)
+		floating = 0
