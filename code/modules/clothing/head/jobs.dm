@@ -57,7 +57,7 @@
 /obj/item/clothing/head/beret/sec
 	name = "security beret"
 	desc = "A beret with the security insignia emblazoned on it. For officers that are more inclined towards style than safety."
-	icon_state = "beret_badge"
+	icon_state = "beret_badgeb"
 	flags = FPRINT | TABLEPASS
 /obj/item/clothing/head/beret/eng
 	name = "engineering beret"
