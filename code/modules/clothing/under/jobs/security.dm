@@ -11,9 +11,9 @@
 /obj/item/clothing/under/rank/warden
 	desc = "It's made of a slightly sturdier material than standard jumpsuits, to allow for more robust protection. It has the word \"Warden\" written on the shoulders."
 	name = "warden's jumpsuit"
-	icon_state = "wardenblue"
+	icon_state = "warden"
 	item_state = "b_suit"
-	item_color = "wardenblue"
+	item_color = "warden"
 	armor = list(melee = 10, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
 	flags = FPRINT | TABLEPASS
 	siemens_coefficient = 0.9
@@ -21,9 +21,9 @@
 /obj/item/clothing/under/rank/security
 	name = "security officer's jumpsuit"
 	desc = "It's made of a slightly sturdier material than standard jumpsuits, to allow for robust protection."
-	icon_state = "secblue"
+	icon_state = "security"
 	item_state = "b_suit"
-	item_color = "secblue"
+	item_color = "secred"
 	armor = list(melee = 10, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
 	flags = FPRINT | TABLEPASS
 	siemens_coefficient = 0.9
@@ -41,9 +41,9 @@
 /obj/item/clothing/under/rank/security2
 	name = "security officer's uniform"
 	desc = "It's made of a slightly sturdier material, to allow for robust protection."
-	icon_state = "officerblueclothes"
+	icon_state = "redshirt2"
 	item_state = "b_suit"
-	item_color = "officerblueclothes"
+	item_color = "redshirt2"
 	armor = list(melee = 10, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
 	flags = FPRINT | TABLEPASS
 	siemens_coefficient = 0.9
@@ -126,9 +126,9 @@
 /obj/item/clothing/under/rank/head_of_security
 	desc = "It's a jumpsuit worn by those few with the dedication to achieve the position of \"Head of Security\". It has additional armor to protect the wearer."
 	name = "head of security's jumpsuit"
-	icon_state = "hosblue"
+	icon_state = "hos"
 	item_state = "b_suit"
-	item_color = "hosblue"
+	item_color = "hosred"
 	armor = list(melee = 10, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
 	flags = FPRINT | TABLEPASS
 	siemens_coefficient = 0.8
@@ -146,7 +146,7 @@
 /obj/item/clothing/head/helmet/HoS
 	name = "Head of Security Hat"
 	desc = "The hat of the Head of Security. For showing the officers who's in charge."
-	icon_state = "hoscapb"
+	icon_state = "hoscap"
 	flags = FPRINT | TABLEPASS | HEADCOVERSEYES
 	armor = list(melee = 80, bullet = 60, laser = 50,energy = 10, bomb = 25, bio = 10, rad = 0)
 	flags_inv = 0
@@ -156,8 +156,8 @@
 /obj/item/clothing/suit/armor/hos
 	name = "Head of Security's jacket"
 	desc = "An armoured jacket with golden rank pips and livery."
-	icon_state = "hosb"
-	item_state = "hosb"
+	icon_state = "hos"
+	item_state = "hos"
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO|ARMS|LEGS
 	armor = list(melee = 65, bullet = 30, laser = 50, energy = 10, bomb = 25, bio = 0, rad = 0)
 	flags_inv = HIDEJUMPSUIT
